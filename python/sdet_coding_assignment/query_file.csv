@@ -1,0 +1,11 @@
+query_id,query_testName
+query_0,item_name offer_price purchase_price 
+query_1,item_name offer_price sale_price sale_units 
+query_2,item_name offer_price sale_price
+query_3,item_name offer_price purchase_price offer_iattr_1k 
+query_4,item_name offer_price purchase_price offer_iattr_1k sort by sum offer_iattr_1k descending 
+query_5,sale_price item_name purchase_price 
+query_6,sale_units broker_10m_id purchase_price 
+query_7,top 20 sale_units broker_10m_id purchase_price 
+query_8,top 25 purchase_price sale_units broker_10m_id 
+query_9,top 25 purchase_price sale_units broker_10m_id sum sale_units < 14000 

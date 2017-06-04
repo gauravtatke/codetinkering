@@ -1,0 +1,404 @@
+index of g is 6
+appending i
+index of   is -1
+appending b
+index of f is 5
+appending h
+index of m is 12
+appending o
+index of n is 13
+appending p
+index of c is 2
+appending e
+index of   is -1
+appending b
+index of w is 22
+appending y
+index of m is 12
+appending o
+index of s is 18
+appending u
+index of   is -1
+appending b
+index of b is 1
+appending d
+index of g is 6
+appending i
+index of b is 1
+appending d
+index of l is 11
+appending n
+index of r is 17
+appending t
+index of   is -1
+appending b
+index of r is 17
+appending t
+index of p is 15
+appending r
+index of y is 24
+appending a
+index of l is 11
+appending n
+index of q is 16
+appending s
+index of j is 9
+appending l
+index of y is 24
+appending a
+index of r is 17
+appending t
+index of c is 2
+appending e
+index of   is -1
+appending b
+index of g is 6
+appending i
+index of r is 17
+appending t
+index of   is -1
+appending b
+index of z is 25
+appending b
+index of w is 22
+appending y
+index of   is -1
+appending b
+index of f is 5
+appending h
+index of y is 24
+appending a
+index of l is 11
+appending n
+index of b is 1
+appending d
+index of . is -1
+appending b
+index of   is -1
+appending b
+index of r is 17
+appending t
+index of f is 5
+appending h
+index of y is 24
+appending a
+index of r is 17
+appending t
+index of q is 16
+appending s
+index of   is -1
+appending b
+index of u is 20
+appending w
+index of f is 5
+appending h
+index of y is 24
+appending a
+index of r is 17
+appending t
+index of   is -1
+appending b
+index of a is 0
+index of m is 12
+appending o
+index of k is 10
+appending m
+index of n is 13
+appending p
+index of s is 18
+appending u
+index of r is 17
+appending t
+index of c is 2
+appending e
+index of p is 15
+appending r
+index of q is 16
+appending s
+index of   is -1
+appending b
+index of y is 24
+appending a
+index of p is 15
+appending r
+index of c is 2
+appending e
+index of   is -1
+appending b
+index of d is 3
+appending f
+index of m is 12
+appending o
+index of p is 15
+appending r
+index of . is -1
+appending b
+index of   is -1
+appending b
+index of b is 1
+appending d
+index of m is 12
+appending o
+index of g is 6
+appending i
+index of l is 11
+appending n
+index of e is 4
+appending g
+index of   is -1
+appending b
+index of g is 6
+appending i
+index of r is 17
+appending t
+index of   is -1
+appending b
+index of g is 6
+appending i
+index of l is 11
+appending n
+index of   is -1
+appending b
+index of z is 25
+appending b
+index of w is 22
+appending y
+index of   is -1
+appending b
+index of f is 5
+appending h
+index of y is 24
+appending a
+index of l is 11
+appending n
+index of b is 1
+appending d
+index of   is -1
+appending b
+index of g is 6
+appending i
+index of q is 16
+appending s
+index of   is -1
+appending b
+index of g is 6
+appending i
+index of l is 11
+appending n
+index of c is 2
+appending e
+index of d is 3
+appending f
+index of d is 3
+appending f
+index of g is 6
+appending i
+index of a is 0
+index of g is 6
+appending i
+index of c is 2
+appending e
+index of l is 11
+appending n
+index of r is 17
+appending t
+index of   is -1
+appending b
+index of y is 24
+appending a
+index of l is 11
+appending n
+index of b is 1
+appending d
+index of   is -1
+appending b
+index of r is 17
+appending t
+index of f is 5
+appending h
+index of y is 24
+appending a
+index of r is 17
+appending t
+index of ' is -1
+appending b
+index of q is 16
+appending s
+index of   is -1
+appending b
+index of u is 20
+appending w
+index of f is 5
+appending h
+index of w is 22
+appending y
+index of   is -1
+appending b
+index of r is 17
+appending t
+index of f is 5
+appending h
+index of g is 6
+appending i
+index of q is 16
+appending s
+index of   is -1
+appending b
+index of r is 17
+appending t
+index of c is 2
+appending e
+index of v is 21
+appending x
+index of r is 17
+appending t
+index of   is -1
+appending b
+index of g is 6
+appending i
+index of q is 16
+appending s
+index of   is -1
+appending b
+index of q is 16
+appending s
+index of m is 12
+appending o
+index of   is -1
+appending b
+index of j is 9
+appending l
+index of m is 12
+appending o
+index of l is 11
+appending n
+index of e is 4
+appending g
+index of . is -1
+appending b
+index of   is -1
+appending b
+index of s is 18
+appending u
+index of q is 16
+appending s
+index of g is 6
+appending i
+index of l is 11
+appending n
+index of e is 4
+appending g
+index of   is -1
+appending b
+index of q is 16
+appending s
+index of r is 17
+appending t
+index of p is 15
+appending r
+index of g is 6
+appending i
+index of l is 11
+appending n
+index of e is 4
+appending g
+index of . is -1
+appending b
+index of k is 10
+appending m
+index of y is 24
+appending a
+index of i is 8
+appending k
+index of c is 2
+appending e
+index of r is 17
+appending t
+index of p is 15
+appending r
+index of y is 24
+appending a
+index of l is 11
+appending n
+index of q is 16
+appending s
+index of ( is -1
+appending b
+index of ) is -1
+appending b
+index of   is -1
+appending b
+index of g is 6
+appending i
+index of q is 16
+appending s
+index of   is -1
+appending b
+index of p is 15
+appending r
+index of c is 2
+appending e
+index of a is 0
+index of m is 12
+appending o
+index of k is 10
+appending m
+index of k is 10
+appending m
+index of c is 2
+appending e
+index of l is 11
+appending n
+index of b is 1
+appending d
+index of c is 2
+appending e
+index of b is 1
+appending d
+index of . is -1
+appending b
+index of   is -1
+appending b
+index of l is 11
+appending n
+index of m is 12
+appending o
+index of u is 20
+appending w
+index of   is -1
+appending b
+index of y is 24
+appending a
+index of n is 13
+appending p
+index of n is 13
+appending p
+index of j is 9
+appending l
+index of w is 22
+appending y
+index of   is -1
+appending b
+index of m is 12
+appending o
+index of l is 11
+appending n
+index of   is -1
+appending b
+index of r is 17
+appending t
+index of f is 5
+appending h
+index of c is 2
+appending e
+index of   is -1
+appending b
+index of s is 18
+appending u
+index of p is 15
+appending r
+index of j is 9
+appending l
+index of . is -1
+appending b
+ibhopebyoubdidntbtranslatebitbbybhandbbthatsbwhatbaomputersbarebforbbdoingbitbinbbybhandbisbineffiaientbandbthatbsbwhybthisbtextbisbsoblongbbusingbstringbmaketransbbbisbreaommendedbbnowbapplybonbtheburlb

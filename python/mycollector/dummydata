@@ -1,0 +1,22 @@
+{  
+   "status":0,
+   "startTime":1464988508310,
+   "currentTimeStamp":"20160605-08:45:13.262",
+   "metrics":[  
+      {  
+         "msStart":0,
+         "msStop":0,
+         "streamName":"FXIN_M_1",
+         "totalIncoming":896450,
+         "totalOutGoing":896047,
+         "activeSubscription":-45,
+         "totalFiltered":1,
+         "totalOrdersProcessed":0,
+         "totalOrdersDropped":0,
+         "minimalReport":null
+      }
+   ],
+   "name":"MSFXN",
+   "type":"MAKER",
+   "realLPName":"MSFX"
+}

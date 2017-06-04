@@ -1,0 +1,162 @@
+TEST 5 modified
+TEST 5 modified - 2
+NO MODI
+
+root        18     2  0 21:29 ?        00:00:01 [ksoftirqd/3]
+root        20     2  0 21:29 ?        00:00:00 [cpuset]
+root        21     2  0 21:29 ?        00:00:00 [khelper]
+root        22     2  0 21:29 ?        00:00:00 [kdevtmpfs]
+root        23     2  0 21:29 ?        00:00:00 [netns]
+root        25     2  0 21:29 ?        00:00:00 [sync_supers]
+root        26     2  0 21:29 ?        00:00:00 [bdi-default]
+root        27     2  0 21:29 ?        00:00:00 [kintegrityd]
+root        28     2  0 21:29 ?        00:00:00 [kblockd]
+root        31     2  0 21:29 ?        00:00:00 [ata_sff]
+root        32     2  0 21:29 ?        00:00:00 [khubd]
+root        33     2  0 21:29 ?        00:00:00 [md]
+root        36     2  0 21:29 ?        00:00:00 [khungtaskd]
+root        37     2  0 21:29 ?        00:00:00 [kswapd0]
+root        38     2  0 21:29 ?        00:00:00 [ksmd]
+root        39     2  0 21:29 ?        00:00:00 [khugepaged]
+root        40     2  0 21:29 ?        00:00:00 [fsnotify_mark]
+root        41     2  0 21:29 ?        00:00:00 [ecryptfs-kthrea]
+root        42     2  0 21:29 ?        00:00:00 [crypto]
+root        51     2  0 21:29 ?        00:00:00 [kthrotld]
+root        55     2  0 21:29 ?        00:00:00 [scsi_eh_0]
+root        56     2  0 21:29 ?        00:00:00 [scsi_eh_1]
+root        57     2  0 21:29 ?        00:00:00 [scsi_eh_2]
+root        58     2  0 21:29 ?        00:00:00 [scsi_eh_3]
+root        59     2  0 21:29 ?        00:00:00 [scsi_eh_4]
+root        60     2  0 21:29 ?        00:00:00 [scsi_eh_5]
+root        64     2  0 21:29 ?        00:00:00 [kworker/u:5]
+root        65     2  0 21:29 ?        00:00:00 [kworker/u:6]
+root        67     2  0 21:29 ?        00:00:00 [binder]
+root        87     2  0 21:29 ?        00:00:00 [deferwq]
+root        88     2  0 21:29 ?        00:00:00 [charger_manager]
+root        90     2  0 21:29 ?        00:00:00 [kworker/2:1]
+root        91     2  0 21:29 ?        00:00:00 [devfreq_wq]
+root       356     2  0 21:29 ?        00:00:00 [kjournald]
+root       374     2  0 21:29 ?        00:00:00 [flush-8:0]
+root       449     1  0 21:29 ?        00:00:00 upstart-udev-bridge --daemon
+root       451     1  0 21:29 ?        00:00:00 /sbin/udevd --daemon
+root       531     2  0 21:29 ?        00:00:00 [irq/42-mei]
+root       576     2  0 21:29 ?        00:00:00 [kpsmoused]
+root       591     2  0 21:29 ?        00:00:00 [hd-audio0]
+root       639     2  0 21:29 ?        00:00:00 [kmpathd]
+root       672     2  0 21:29 ?        00:00:00 [kmpath_handlerd]
+root       680     2  0 21:29 ?        00:00:00 [kvm-irqfd-clean]
+root       712     1  0 21:29 ?        00:00:00 upstart-socket-bridge --daemon
+root       731   451  0 21:29 ?        00:00:00 /sbin/udevd --daemon
+root       732   451  0 21:29 ?        00:00:00 /sbin/udevd --daemon
+102        803     1  0 21:29 ?        00:00:01 dbus-daemon --system --fork
+root       857     1  0 21:29 ?        00:00:00 /usr/sbin/modem-manager
+root       865     1  0 21:29 ?        00:00:00 /usr/sbin/bluetoothd
+root       878     1  0 21:29 ?        00:00:00 NetworkManager
+root       918     1  0 21:29 ?        00:00:00 /usr/lib/policykit-1/polkitd --no-debug
+root       921     2  0 21:29 ?        00:00:00 [krfcommd]
+avahi      932     1  0 21:29 ?        00:00:00 avahi-daemon: running [rico.local]
+avahi      947   932  0 21:29 ?        00:00:00 avahi-daemon: chroot helper
+root       989     1  0 21:29 ?        00:00:00 /usr/sbin/cupsd -F
+syslog     993     1  0 21:29 ?        00:00:00 rsyslogd -c5
+root      1003     1  0 21:29 ?        00:00:00 /sbin/wpa_supplicant -B -P /run/sendsigs.omit.d/wpasupplicant.pid -u -s -O /var/run/wpa_supplicant
+root      1036     1  0 21:29 tty4     00:00:00 /sbin/getty -8 38400 tty4
+root      1044     1  0 21:29 tty5     00:00:00 /sbin/getty -8 38400 tty5
+root      1062     1  0 21:29 tty2     00:00:00 /sbin/getty -8 38400 tty2
+xrdp      1064     1  0 21:29 ?        00:00:00 /usr/sbin/xrdp
+root      1066     1  0 21:29 tty3     00:00:00 /sbin/getty -8 38400 tty3
+root      1067     1  0 21:29 ?        00:00:00 /usr/sbin/xrdp-sesman
+root      1072     1  0 21:29 tty6     00:00:00 /sbin/getty -8 38400 tty6
+root      1148     1  0 21:29 ?        00:00:00 /usr/sbin/vsftpd
+root      1152     1  0 21:29 ?        00:00:00 acpid -c /etc/acpi/events -s /var/run/acpid.socket
+whoopsie  1154     1  0 21:29 ?        00:00:00 whoopsie
+root      1156     1  0 21:29 ?        00:00:00 lightdm
+root      1163     1  0 21:29 ?        00:00:00 /usr/sbin/irqbalance
+daemon    1195     1  0 21:29 ?        00:00:00 atd
+root      1196     1  0 21:29 ?        00:00:00 cron
+root      1202  1156  3 21:29 tty7     00:05:11 /usr/bin/X :0 -core -auth /var/run/lightdm/root/:0 -nolisten tcp vt7 -novtswitch -background none
+root      1297     2  0 21:29 ?        00:00:00 [firegl]
+root      1298     2  0 21:29 ?        00:00:00 [firegl]
+root      1299     2  0 21:29 ?        00:00:00 [firegl]
+root      1316     2  0 21:29 ?        00:00:00 [ips-adjust]
+root      1317     2  0 21:29 ?        00:00:01 [ips-monitor]
+root      1332     2  0 21:29 ?        00:00:00 [hd-audio1]
+root      1431     1  0 21:29 tty1     00:00:00 /sbin/getty -8 38400 tty1
+root      1440     1  0 21:29 ?        00:00:00 /usr/lib/accountsservice/accounts-daemon
+root      1458     1  0 21:29 ?        00:00:00 /usr/sbin/console-kit-daemon --no-daemon
+root      1581     1  0 21:29 ?        00:00:02 /usr/lib/upower/upowerd
+colord    1772     1  0 21:29 ?        00:00:00 /usr/lib/x86_64-linux-gnu/colord/colord
+root      1780  1156  0 21:29 ?        00:00:00 lightdm --session-child 12 21
+rtkit     1824     1  0 21:29 ?        00:00:00 /usr/lib/rtkit/rtkit-daemon
+root      1885   878  0 21:29 ?        00:00:00 /sbin/dhclient -d -4 -sf /usr/lib/NetworkManager/nm-dhcp-client.action -pf /var/run/sendsigs.omit.d/network-manager.dhclient-eth1.pid -lf /var/lib/dhcp/dhclient-ae795b6c-a1b4-4955-bdc1-03757ac2ccdd-eth1.lease -cf /var/run/nm-dhclient-eth1.conf eth1
+nobody    1889   878  0 21:29 ?        00:00:00 /usr/sbin/dnsmasq --no-resolv --keep-in-foreground --no-hosts --bind-interfaces --pid-file=/var/run/sendsigs.omit.d/network-manager.dnsmasq.pid --listen-address=127.0.1.1 --conf-file=/var/run/nm-dns-dnsmasq.conf --cache-size=0 --proxy-dnssec --enable-dbus=org.freedesktop.NetworkManager.dnsmasq --conf-dir=/etc/NetworkManager/dnsmasq.d
+gaurav    2058     1  0 21:30 ?        00:00:00 /usr/bin/gnome-keyring-daemon --daemonize --login
+gaurav    2069  1780  0 21:30 ?        00:00:00 gnome-session --session=ubuntu
+gaurav    2106  2069  0 21:30 ?        00:00:00 /usr/bin/ssh-agent /usr/bin/dbus-launch --exit-with-session gnome-session --session=ubuntu
+gaurav    2109     1  0 21:30 ?        00:00:00 /usr/bin/dbus-launch --exit-with-session gnome-session --session=ubuntu
+gaurav    2110     1  0 21:30 ?        00:00:02 //bin/dbus-daemon --fork --print-pid 5 --print-address 7 --session
+gaurav    2112     1  0 21:30 ?        00:00:00 /usr/lib/at-spi2-core/at-spi-bus-launcher
+gaurav    2116  2112  0 21:30 ?        00:00:00 /bin/dbus-daemon --config-file=/etc/at-spi2/accessibility.conf --nofork --print-address 3
+gaurav    2119     1  0 21:30 ?        00:00:01 /usr/lib/at-spi2-core/at-spi2-registryd --use-gnome-session
+gaurav    2129  2069  0 21:30 ?        00:00:04 /usr/lib/gnome-settings-daemon/gnome-settings-daemon
+gaurav    2138     1  0 21:30 ?        00:00:00 /usr/lib/gvfs/gvfsd
+gaurav    2142     1  0 21:30 ?        00:00:00 /usr/lib/gvfs//gvfsd-fuse -f /run/user/gaurav/gvfs
+gaurav    2150  2129  0 21:30 ?        00:00:00 [check_gl_textur] <defunct>
+gaurav    2153  2069  7 21:30 ?        00:11:13 compiz
+gaurav    2160  2129  0 21:30 ?        00:00:04 syndaemon -i 2.0 -K -R -t
+gaurav    2165     1  1 21:30 ?        00:01:39 /usr/bin/pulseaudio --start --log-target=syslog
+gaurav    2170     1  0 21:30 ?        00:00:00 /usr/lib/dconf/dconf-service
+gaurav    2174  2069  0 21:30 ?        00:00:00 bluetooth-applet
+gaurav    2175  2069  0 21:30 ?        00:00:00 /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1
+gaurav    2178  2165  0 21:30 ?        00:00:00 /usr/lib/pulseaudio/pulse/gconf-helper
+gaurav    2181     1  0 21:30 ?        00:00:00 /usr/lib/x86_64-linux-gnu/gconf/gconfd-2
+gaurav    2182  2069  0 21:30 ?        00:00:06 python /usr/bin/jupiter
+gaurav    2188  2069  0 21:30 ?        00:00:11 nautilus -n
+gaurav    2193  2069  0 21:30 ?        00:00:00 nm-applet
+gaurav    2194  2069  0 21:30 ?        00:00:00 /usr/lib/gnome-settings-daemon/gnome-fallback-mount-helper
+gaurav    2218     1  0 21:30 ?        00:00:00 /usr/lib/gvfs/gvfs-udisks2-volume-monitor
+root      2286     1  0 21:30 ?        00:00:01 /usr/lib/udisks2/udisksd --no-debug
+gaurav    2295     1  0 21:30 ?        00:00:00 /usr/lib/gvfs/gvfs-afc-volume-monitor
+gaurav    2300     1  0 21:30 ?        00:00:00 /usr/lib/gvfs/gvfs-gphoto2-volume-monitor
+gaurav    2365     1  0 21:30 ?        00:00:00 /usr/lib/gvfs/gvfsd-trash --spawner :1.7 /org/gtk/gvfs/exec_spaw/0
+gaurav    2370     1  0 21:30 ?        00:00:00 /usr/lib/gvfs/gvfsd-burn --spawner :1.7 /org/gtk/gvfs/exec_spaw/1
+gaurav    2379     1  0 21:30 ?        00:00:04 /usr/lib/bamf/bamfdaemon
+gaurav    2384     1  0 21:30 ?        00:00:00 /usr/lib/gvfs/gvfsd-metadata
+gaurav    2394  2153  0 21:30 ?        00:00:00 /bin/sh -c /usr/bin/gtk-window-decorator
+gaurav    2395  2394  0 21:30 ?        00:00:02 /usr/bin/gtk-window-decorator
+gaurav    2406     1  0 21:30 ?        00:00:06 /usr/lib/unity/unity-panel-service
+gaurav    2408     1  0 21:30 ?        00:00:02 /usr/lib/indicator-appmenu/hud-service
+gaurav    2417     1  0 21:30 ?        00:00:00 /usr/lib/indicator-messages/indicator-messages-service
+gaurav    2419     1  0 21:30 ?        00:00:00 /usr/lib/indicator-sound/indicator-sound-service
+gaurav    2421     1  0 21:30 ?        00:00:00 /usr/lib/indicator-printers/indicator-printers-service
+gaurav    2423     1  0 21:30 ?        00:00:00 /usr/lib/indicator-datetime/indicator-datetime-service
+gaurav    2425     1  0 21:30 ?        00:00:00 /usr/lib/indicator-session/indicator-session-service
+gaurav    2429     1  0 21:30 ?        00:00:00 /usr/lib/x86_64-linux-gnu/indicator-application-service
+gaurav    2455     1  0 21:30 ?        00:00:00 /usr/lib/evolution/evolution-source-registry
+gaurav    2470     1  0 21:30 ?        00:00:00 /usr/lib/geoclue/geoclue-master
+gaurav    2482     1  0 21:30 ?        00:00:00 /usr/lib/ubuntu-geoip/ubuntu-geoip-provider
+root      2497     1  0 21:30 ?        00:00:00 /sbin/mount.ntfs /dev/sda4 /media/gaurav/hani-salam -o rw,nosuid,nodev,uhelper=udisks2,uid=1000,gid=1000,dmask=0077,fmask=0177
+gaurav    2505     1  0 21:30 ?        00:00:00 /usr/lib/unity-lens-applications/unity-applications-daemon
+gaurav    2507     1  0 21:30 ?        00:00:00 /usr/lib/unity-lens-files/unity-files-daemon
+gaurav    2509     1  0 21:30 ?        00:00:00 /usr/lib/gwibber/unity-gwibber-daemon
+gaurav    2511     1  0 21:30 ?        00:00:00 /usr/lib/x86_64-linux-gnu/unity-music-daemon
+gaurav    2513   ission-control-5
+gaurav    2605     1  0 21:30 ?        00:00:00 /usr/bin/signon-ui
+gaurav    2611     1  0 21:30 ?        00:00:00 /usr/bin/python3 /usr/lib/unity-lens-files/unity-scope-gdocs
+gaurav    2620     1  0 21:30 ?        00:00:00 /usr/lib/x86_64-linux-gnu/unity-musicstore-daemon
+gaurav    2634     1  0 21:30 ?        00:00:00 /usr/bin/python /usr/lib/unity-scope-video-remote/unity-scope-video-remote
+gaurav    2653     1  0 21:30 ?        00:00:14 gnome-terminal
+gaurav    2658  2653  0 21:30 ?        00:00:00 gnome-pty-helper
+gaurav    2659  2653  0 21:30 pts/0    00:00:00 bash
+gaurav    dog/0]
+root      3766     2  0 23:12 ?        00:00:00 [watchdog/1]
+root      3768     2  0 23:12 ?        00:00:00 [watchdog/2]
+root      3770     2  0 23:12 ?        00:00:00 [watchdog/3]
+lp        4086   989  0 23:17 ?        00:00:00 /usr/lib/cups/notifier/dbus dbus:// 
+root      4298     2  0 23:33 ?        00:00:00 [kworker/3:1]
+root      4343     2  0 23:39 ?        00:00:00 [kworker/3:2]
+root      4379     2  0 23:43 ?        00:00:00 [kworker/0:2]
+root      4407     2  0 23:48 ?        00:00:00 [kworker/0:0]
+gaurav    4457  3352  0 23:51 pts/1    00:00:00 ps -eaf
+asfgfgfa
+fghalkfjbkabfrhagf
+afs fkj kjf gadfssfg

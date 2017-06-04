@@ -1,0 +1,1 @@
+{"metric":["cali.temp","cali.humid","cali.precip"],"tagk":["city"],"tagv":["sanfranc","sandiego","losangel"]}

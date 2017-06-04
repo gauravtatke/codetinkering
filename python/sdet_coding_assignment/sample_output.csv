@@ -1,0 +1,11 @@
+query_id,answerRendering.TABLE-MODE,answerRendering.CHART-MODE,answerMetadataRpc.callosum.postgres.duration,answerMetadataRpc.duration,answerDataRpc.CHART.duration,answerDataRpc.CHART.callosum.postgres.duration,answerDataRpc.CHART.callosum.falcon.duration,answerDataRpc.HEADLINE+TABLE.duration,answerDataRpc.HEADLINE+TABLE.callosum.postgres.duration,answerDataRpc.HEADLINE+TABLE.callosum.falcon.duration,sageRpc.duration,date
+query_0,-1,-1,0,235000,-1,-1,-1,9691000,0,9331212,252000,02/16/2017 14:29:30
+query_1,-1,-1,0,318000,-1,-1,-1,16015000,0,15690437,338000,02/16/2017 14:29:30
+query_2,-1,-1,0,202000,-1,-1,-1,14383000,0,14087081,203000,02/16/2017 14:29:30
+query_3,-1,-1,0,221000,-1,-1,-1,9093000,0,8789113,233000,02/16/2017 14:29:30
+query_4,-1,-1,0,210000,-1,-1,-1,10485000,0,10173938,366000,02/16/2017 14:29:30
+query_5,-1,-1,0,211000,-1,-1,-1,18788000,0,18535801,263000,02/16/2017 14:29:30
+query_6,-1,-1,0,197000,-1,-1,-1,11222000,0,10989599,298000,02/16/2017 14:29:30
+query_7,-1,-1,0,194000,-1,-1,-1,10338000,0,10095640,464000,02/16/2017 14:29:30
+query_8,-1,-1,0,214000,-1,-1,-1,11772000,0,11536567,434000,02/16/2017 14:29:30
+query_9,-1,-1,0,158000,-1,-1,-1,18414000,0,18126960,581000,02/16/2017 14:29:30
