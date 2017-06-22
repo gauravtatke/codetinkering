@@ -16,13 +16,28 @@ def permutation(arr, start, end):
             i += 1
 
 
+def heapPermutation(arr, size):
+    if size == 1:
+        print(arr)
+        return
+
+    for i in range(size):
+        heapPermutation(arr, size-1)
+        if size % 2:  # size is even
+            # swap last element with ith element
+            arr[i], arr[size-1] = arr[size-1], arr[i]
+        else:
+            # swap first and last element
+            arr[0], arr[size-1] = arr[size-1], arr[0]
+
+
 def main(argv):
     arr = list(argv[0])
     permutation(arr, 0, len(arr)-1)
+    print('#########')
+    heapPermutation(arr, len(arr))
     return 0
 
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
-
-            
