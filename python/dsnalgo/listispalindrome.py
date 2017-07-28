@@ -3,6 +3,7 @@
 # Given a singly linked list of characters, write a function that returns true
 # if the given list is palindrome, else false.
 
+
 class SllNode:
     def __init__(self, val=None, np=None):
         self.key = val
@@ -73,7 +74,8 @@ def isPalindrome(head):
 
         if fast is not None:
             # means it is odd size list
-            # save the mid so that we can make original list back after reversing half list
+            # save the mid so that we can make original list back after
+            # reversing half list
             mid = slow
             slow = slow.np
         # now we will reverse the list from slow to end
@@ -84,7 +86,7 @@ def isPalindrome(head):
         else:
             result = False
 
-        # Now make the original list back 
+        # Now make the original list back
         slow = reverselist(slow)
         if mid:
             # if there was a mid element i.e. odd size list
@@ -96,12 +98,33 @@ def isPalindrome(head):
         return result
 
 
+def isPalindrome_UsingStack(head):
+    # this method uses stack. push all nodes into stack.
+    # then traverse the list again and pop the items if it matches.
+    # list is palindrome if the stack becomes empty after second traversal
+    stack = []
+    curr = head
+    while curr:
+        stack.append(curr)
+        curr = curr.np
+
+    curr = head
+    while curr:
+        if curr.key == stack[-1].key:
+            stack.pop()
+            curr = curr.np
+        else:
+            return False
+
+    return not len(stack)
+
+
 def main():
-    alist1 = [1,2]
-    alist2 = [1,2,3,3,2,1]
+    alist1 = [1, 2]
+    alist2 = [1, 2, 3, 3, 2, 1]
     head1 = createlist(alist1)
     head2 = createlist(alist2)
-    print(isPalindrome(head2))
+    print(isPalindrome_UsingStack(head1))
 
 
 if __name__ == '__main__':
