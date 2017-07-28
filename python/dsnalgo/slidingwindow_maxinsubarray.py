@@ -4,13 +4,14 @@
 
 from collections import deque
 
+
 def findmaxinsubarray_brute(arr, size):
     # complexity is O(n*k) where k is size of the subarray
-    for i, num in enumerate(arr[:len(arr)-size+1]):
+    for i, num in enumerate(arr[:len(arr) - size + 1]):
         maxitem = num
         j = 1
         while j < size:
-            maxitem = max(maxitem, arr[i+j])
+            maxitem = max(maxitem, arr[i + j])
             j += 1
         print(maxitem, end=' ')
     print('\n')
@@ -28,7 +29,6 @@ def findmaxinsubarr_slidingwindow(arr, size):
             dq.pop()
         dq.append(i)
 
-
     for i, num in enumerate(arr[size:], size):
         # elem at the front of the dq will the largest for previous window
         # print it
@@ -37,7 +37,7 @@ def findmaxinsubarr_slidingwindow(arr, size):
         # remove the elem which are out of this window
         # remember that window is ending that i means that
         # window is [i, i-1, i-2 .... i-size+1]
-        while len(dq) and dq[0] <= i-size:
+        while len(dq) and dq[0] <= i - size:
             dq.popleft()
 
         # remove all the elements' index from the back which are smaller than num
@@ -59,6 +59,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
