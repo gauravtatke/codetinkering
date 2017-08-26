@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+{% extends "basic_app/base.html"%}
+    {% block body-block %}
+        {% load my_extras %}
+        <h1>Welcome to index</h1>
+        <!-- <h2>This is index.html page showing!</h2> -->
+        <h3>{{text}}</h3>
+        <h3>{{number}}</h3>
+        <!-- example of builtin filters -->
+        <h3>{{text|upper}}</h3>
+        <h3>{{number|add:"99"}}</h3> <!-- will add 99 to number -->
+        <!-- example of custom filter -->
+        <h3>{{text|callcut:'hello'}}</h3> <!-- will remove 'hello' from 'hello world!' -->
+    {% endblock %}
