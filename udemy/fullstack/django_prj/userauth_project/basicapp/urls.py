@@ -1,8 +1,6 @@
 from django.conf.urls import url
-from basicapp import views
+from . import views
 
 app_name = 'basicapp'
 
-urlpatterns = [
-    url(r'^register/$', views.register, name='register')
-]
+urlpatterns = [url(r'^register/$', views.register, name='register')]
