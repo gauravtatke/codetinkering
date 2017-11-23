@@ -59,3 +59,35 @@ def inorder_iterativeWithoutStack(root):
         if prev == curr.right:
             prev = curr
             curr = curr.parent
+
+
+def morris_traversal(root):
+    # 1. start from curr = root.
+    # 2. if curr.left is None, process curr, and move to right
+    # 3. else make curr as right child of right most node in curr's left
+    # subtree and move to left
+    # in this algo, tree is changed but it regain its structure once the algo
+    # is finished
+    if root is None:
+        return None
+    curr = root
+    nlist = []
+    while curr is not None:
+        if curr.left is None:
+            # process curr and move to right
+            nlist.append(curr)
+            curr = curr.right
+        else:
+            # find the rightmost node in curr's left subtree
+            pre = curr.left
+            while pre.right is not None and pre.right != curr:
+                pre = pre.right
+            if pre.right is None:
+                # pre is the right most tree
+                pre.right = curr
+                curr = curr.left
+            else:
+                # pre.right == curr, left subtree is already traverse
+                pre.right = None  # set is back to None
+                nlist.append(curr)  # process curr node
+                curr = curr.right

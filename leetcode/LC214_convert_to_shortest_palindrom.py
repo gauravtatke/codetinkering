@@ -68,7 +68,7 @@ def shortestPalindrome(s):
         return s
     rev = s[-1::-1]
     for i in range(n):
-        if s[0:i] == rev[i:]:
+        if s[0:n - i] == rev[i:]:
             return rev[0:i] + s
 
 
