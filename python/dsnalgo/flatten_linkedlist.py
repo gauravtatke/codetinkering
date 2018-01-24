@@ -141,13 +141,14 @@ def flattenlist_recursive(head):
         return head
     nextp = flattenlist_recursive(head.np)
     bottomp = flattenlist_recursive(head.bp)
-    head.np = flattenlist_recursive(nextp, bottomp)
+    head.np = mergelist(nextp, bottomp)
     head.bp = None
     return head
 
 
 def flattenlist_usingpriorityq(head):
-    # since this is more like a tree structure, traverse by BFS and at each layer push all elements to priority q and take out the minimum
+    # since this is more like a tree structure, traverse by BFS and at each
+    # layer push all elements to priority q and take out the minimum
     heap = []
     heapq.heappush(heap, head)
     head = tail = None
