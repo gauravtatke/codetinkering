@@ -1,0 +1,13 @@
+[package]
+name = "quickfix-test"
+version = "0.1.0"
+authors = ["gaurav tatke <gauravtatke23@gmail.com>"]
+
+[dependencies]
+# The core APIs, including the Serialize and Deserialize traits. Always
+# required when using Serde.
+serde = "1.0"
+
+# Support for #[derive(Serialize, Deserialize)]. Required if you want Serde
+# to work for structs and enums defined in your crate.
+serde_derive = "1.0"
