@@ -7,8 +7,9 @@ extern crate serde_derive;
 
 mod serial;
 mod fields;
-mod types;
-mod field;
+//mod types;
+//mod field;
+mod newfield;
 
 
 // fn to_string<T>(value: &T) -> Result<String, FixError> 
