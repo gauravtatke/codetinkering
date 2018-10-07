@@ -609,7 +609,7 @@ pub mod data_type {
     use types::{Getter, Setter};
 
     #[derive(Clone, Debug)]
-    pub struct data (Vec<u8>);
+    pub struct Data (Vec<u8>);
 }
 
 // pub mod string_type {
