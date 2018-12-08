@@ -59,12 +59,6 @@ pub mod integer_type {
         }
     }
 
-    // impl<T: Into<Int>> Setter<T> for Int {
-    //     fn set(&mut self, val: T) {
-    //         self.0 = val.into().0;
-    //     }
-    // }
-
     impl<T: Into<i64>> Setter<T> for Int {
         fn set(&mut self, val: T) {
             self.0 = val.into();
@@ -76,30 +70,6 @@ pub mod integer_type {
             self.0 = other.0;
         }
     }
-
-    // impl Setter<i32> for Int {
-    //     fn set(&mut self, other: i32) {
-    //         self.0 = other as i64;
-    //     }
-    // }
-
-    // impl Setter<i64> for Int {
-    //     fn set(&mut self, other: i64) {
-    //         self.0 = other;
-    //     }
-    // }
-
-    // impl Setter<u32> for Int {
-    //     fn set(&mut self, other: u32) {
-    //         self.0 = other as i64;
-    //     }
-    // }
-
-    // impl Setter<u64> for Int {
-    //     fn set(&mut self, other: u64) {
-    //         self.0 = other as i64;
-    //     }
-    // }
 
     #[derive(Clone, Debug, PartialEq, PartialOrd)]
     pub struct Length (u32);
@@ -175,12 +145,6 @@ pub mod integer_type {
         }
     }
 
-    // impl Setter<u32> for TagNum {
-    //     fn set(&mut self, other: u32) {
-    //         self.0 = other;
-    //     }
-    // }
-
     
     // DayOfMonth impls
     #[derive(Clone, Debug, PartialEq, PartialOrd)]
@@ -213,26 +177,13 @@ pub mod integer_type {
 
     impl<T: Into<u32>> Setter<T> for DayOfMonth {
         fn set(&mut self, val: T) {
-            self.0 = val.into();
+            let tempval = val.into();
+            if tempval > 31 {
+                panic!("Day of month can not greater than 31");
+            }
+            self.0 = tempval;
         }
     }
-
-    // impl Setter<u8> for DayOfMonth {
-    //     fn set(&mut self, other: u8) {
-    //         self.0 = other ;
-    //     }
-    // }
-
-    // impl Setter<u32> for DayOfMonth {
-    //     fn set(&mut self, other: u32) {
-    //         if other > 31 {
-    //             // TODO: fix with panic
-    //             println!("Invalid DayOfMonth, Out of range = {}", other);
-    //         }
-    //         self.0 = other as u8;
-    //     }
-    // }
-
 
     // SeqNum impls
     #[derive(Clone, Debug, PartialEq, PartialOrd)]

@@ -1,15 +1,17 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
-#[macro_use]
-
 extern crate serde;
+#[macro_use]
 extern crate serde_derive;
+// extern crate quick_xml;
+extern crate xml;
 
 mod serial;
 mod fields;
 mod types;
 // mod field;
 mod newfield;
+mod fxerror;
 
 
 // fn to_string<T>(value: &T) -> Result<String, FixError> 
@@ -27,12 +29,5 @@ fn create_message() {
 }
 
 fn main() {
-    // let logon: fields::Logon = Default::default();
-    // let mut msg = serial::to_string(&logon).unwrap();
-    // println!("Default logon = {}", &msg);
-    // let logon2 = fields::Logon::new();
-    // msg = serial::to_string(&logon2).unwrap();
-    // println!("With some fields set = {}", msg);
-
-
+    println!("Hello! World");
 }
