@@ -3,8 +3,7 @@
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-// extern crate quick_xml;
-extern crate xml;
+extern crate roxmltree;
 
 mod serial;
 mod fields;
@@ -12,6 +11,7 @@ mod types;
 // mod field;
 mod newfield;
 mod fxerror;
+mod codegen;
 
 
 // fn to_string<T>(value: &T) -> Result<String, FixError> 
@@ -30,4 +30,5 @@ fn create_message() {
 
 fn main() {
     println!("Hello! World");
+    codegen::create_data_dict("/Users/gtatke/myrepos/codetinkering/rust/quickfix-test/src/fix43/FIX43.xml");
 }

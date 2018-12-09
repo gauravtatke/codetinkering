@@ -2,6 +2,7 @@
 name = "quickfix-test"
 version = "0.1.0"
 authors = ["gaurav tatke <gauravtatke23@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 # The core APIs, including the Serialize and Deserialize traits. Always
@@ -11,5 +12,4 @@ serde = "1.0"
 # Support for #[derive(Serialize, Deserialize)]. Required if you want Serde
 # to work for structs and enums defined in your crate.
 serde_derive = "1.0"
-# quick-xml = "0.12.0"
-xml-rs = "0.8"
+roxmltree = "0.3.0"
