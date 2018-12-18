@@ -33,8 +33,8 @@ impl<O, I: Getter<Output = O> + Setter<O>> FixType for I {
 
 pub mod integer_type {
     //use std::default::Default;
-    use types::{Getter, Setter};
-    use types::FixType;
+    use crate::types::{Getter, Setter};
+    use crate::types::FixType;
 
     #[derive(Clone, Debug, PartialEq, PartialOrd)]
     pub struct Int (i64);
@@ -222,8 +222,8 @@ pub mod integer_type {
 }
 
 pub mod float_type {
-    use types::{Getter, Setter};
-    use types::integer_type;
+    use crate::types::{Getter, Setter};
+    use crate::types::integer_type;
 
     //Float impls
     #[derive(Clone, Debug, PartialEq, PartialOrd)]
@@ -439,7 +439,7 @@ pub mod float_type {
 }
 
 pub mod char_type {
-    use types::{Getter, Setter};
+    use crate::types::{Getter, Setter};
     // use std::str::FromStr;
     // use std::char::ParseCharError;
     // use std::char::convert::CharErrorKind;
@@ -557,7 +557,7 @@ pub mod char_type {
 }
 
 pub mod data_type {
-    use types::{Getter, Setter};
+    use crate::types::{Getter, Setter};
 
     #[derive(Clone, Debug)]
     pub struct Data (Vec<u8>);

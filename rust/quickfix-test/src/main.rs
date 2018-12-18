@@ -1,9 +1,5 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate roxmltree;
 
 mod serial;
 mod fields;
@@ -30,5 +26,5 @@ fn create_message() {
 
 fn main() {
     println!("Hello! World");
-    codegen::create_data_dict("/Users/gtatke/myrepos/codetinkering/rust/quickfix-test/src/fix43/FIX43.xml");
+    codegen::create_data_dict("src/fix43/FIX43.xml");
 }

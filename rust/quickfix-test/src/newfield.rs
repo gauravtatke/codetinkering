@@ -11,7 +11,7 @@ use std::result::Result;
 // use types::data_type::*;
 // use types::FixType;
 // use types::{Getter, Setter};
-use fxerror::*;
+use crate::fxerror::*;
 
 
 #[derive(Debug)]
