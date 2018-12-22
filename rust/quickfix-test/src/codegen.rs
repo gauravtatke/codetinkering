@@ -9,8 +9,8 @@ use roxmltree::{Document, Node, NodeType};
 
 #[derive(Debug)]
 pub struct DataDictionary<'a> {
-    fields_by_tag: HashMap<u32, FieldEntry<'a>>,
-    tag_name_map: HashMap<&'a str, u32>,
+    fields_by_tag: HashMap<u32, FieldEntry>,
+    tag_name_map: HashMap<String, u32>,
     components: HashMap<String, ComponentEntry<'a>>,
     groups: HashMap<String, Group<'a>>,
 }
@@ -25,9 +25,9 @@ impl<'a> DataDictionary<'a> {
         }
     }
 
-    fn add_field(&mut self, fld: FieldEntry<'static>) {
+    fn add_field(&mut self, fld: FieldEntry) {
         // TODO: add check so that tag should not be present already - duplicate tag, invalid xml
-        self.tag_name_map.insert(fld.name, fld.number);
+        self.tag_name_map.insert(fld.name.clone(), fld.number);
         self.fields_by_tag.insert(fld.number, fld);
     }
 
@@ -41,39 +41,39 @@ impl<'a> DataDictionary<'a> {
 }
 
 #[derive(Debug)]
-struct FieldEntry<'a> {
+struct FieldEntry {
     number: u32,
-    name: &'a str,
-    ftype: &'a str,
-    values: HashSet<FieldValueEntry<'a>>,
+    name: String,
+    ftype: String,
+    values: HashSet<FieldValueEntry>,
 }
 
-impl<'a> FieldEntry<'a> {
-    fn new(number: u32, name: &'a str, ftype: &'a str) -> Self {
+impl FieldEntry {
+    fn new(number: u32, name: &str, ftype: &str) -> Self {
         Self {
             number,
-            name,
-            ftype,
+            name: name.to_owned(),
+            ftype: ftype.to_owned(),
             values: HashSet::new()
         }
     }
 
-    fn set_valid_value(&mut self, val: FieldValueEntry<'a>) {
+    fn set_valid_value(&mut self, val: FieldValueEntry) {
         self.values.insert(val);
     }
 }
 
 #[derive(Hash, Debug, PartialEq, Eq)]
-struct FieldValueEntry<'a> {
-    value: &'a str,
-    description: &'a str
+struct FieldValueEntry {
+    value: String,
+    description: String
 }
 
-impl<'a> FieldValueEntry<'a> {
-    fn new(val: &'a str, desc: &'a str) -> Self {
+impl FieldValueEntry {
+    fn new(val: &str, desc: &str) -> Self {
         Self {
-            value: val,
-            description: desc,
+            value: val.to_owned(),
+            description: desc.to_owned(),
         }
     }
 }
@@ -94,17 +94,17 @@ impl<'a> ComponentEntry<'a> {
         }
     }
 
-    fn add_group(&mut self, gname: &'a str, req: char) {
+    fn add_group(&mut self, gname: &'a str, req: &'a str) {
         let mut required = false;
-        if req == 'Y' || req == 'y' {
+        if req.eq_ignore_ascii_case("y") {
             required = true;
         }
         self.comp_groups.insert(gname, required);
     }
 
-    fn add_field(&mut self, fname: &'a str, req: char) {
+    fn add_field(&mut self, fname: &'a str, req: &'a str) {
         let mut required = false;
-        if req == 'Y' || req == 'y' {
+        if req.eq_ignore_ascii_case("y") {
             required = true;
         }
         self.comp_fields.insert(fname, required);
@@ -177,5 +177,20 @@ fn field_handler(field_node: Node, dict: &mut DataDictionary) {
 }
 
 fn component_handler(comp_node: Node, dict: &mut DataDictionary) {
-
+    for node in comp_node.children().filter(|n| n.node_type() == NodeType::Element) {
+        let comp_name = node.attribute("name").unwrap();
+        let mut cmp_entry = ComponentEntry::new(comp_name);
+        for field_group in node.children().filter(|n| n.node_type() == NodeType::Element) {
+            match field_group.tag_name().name() {
+                "field" => {
+                    // cmp_entry.add_field(field_group.attribute("name").unwrap(),
+                    //     field_group.attribute("required").unwrap())
+                },
+                "group" => {
+                    // Do nothing
+                },
+                _ => {} // Do nothing TODO: Error handling
+            }
+        }
+    }
 }
