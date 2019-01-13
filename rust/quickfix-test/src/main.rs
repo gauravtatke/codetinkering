@@ -26,5 +26,18 @@ fn create_message() {
 
 fn main() {
     println!("Hello! World");
-    codegen::create_data_dict("src/fix43/FIX43.xml");
+    let dict = codegen::create_data_dict("src/fix43/FIX43.xml").unwrap();
+    // for f in dict.messages() {
+    //     println!("{:?}", f);
+    // }
+
+    // for f in dict.fields_by_name() {
+    //     println!("{:?}", f);
+    // }
+
+    // for f in dict.fields_by_tag() {
+    //     println!("{:?}", f);
+    // }
+
+    codegen::generate_code("src/fix43/fields.rs", dict);
 }
