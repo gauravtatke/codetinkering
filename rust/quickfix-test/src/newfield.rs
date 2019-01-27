@@ -4,13 +4,13 @@ use std::str::FromStr;
 use std::ops::{Index, IndexMut};
 use std::result::Result;
 
-// use types::integer_type::*;
-// use types::float_type::*;
-// use types::char_type::*;
-// use types::string_type::*;
-// use types::data_type::*;
-// use types::FixType;
-// use types::{Getter, Setter};
+use crate::types::integer_type::*;
+use crate::types::float_type::*;
+use crate::types::char_type::*;
+// use crate::types::string_type::*;
+use crate::types::data_type::*;
+use crate::types::FixType;
+use crate::types::{Getter, Setter};
 use crate::fxerror::*;
 
 
@@ -19,8 +19,9 @@ pub enum FXType {
     Int(i64),
     Length(u32),
     TagNum(u32),
-    DayOfMonth(u8),
+    DayOfMonth(u32),
     SeqNum(u64),
+    NumInGroup(u32),
     Float(f64),
     Price(f64),
     PriceOffset(f64),
@@ -30,7 +31,117 @@ pub enum FXType {
     Char(char),
     Bool(bool),
     Str(String),
-    Currency(String)
+    Currency(String),
+    Country(String),
+    Exchange(String),
+    LocalMktDate(String),
+    MonthYear(String),
+    MultiValueStr(String),
+    UtcDate(String),
+    UtcTimeOnly(String),
+    UtcTimestamp(String)
+}
+
+impl FXType {
+    fn int<T: Into<i64>>(val: T) -> FXType {
+        FXType::Int(val.into())
+    }
+
+    fn length<T: Into<u32>>(val: T) -> FXType {
+        FXType::Length(val.into())
+    }
+
+    fn tagnum<T: Into<u32>>(val: T) -> FXType {
+        FXType::TagNum(val.into())
+    }
+
+    fn day_of_month<T: Into<u32>>(val: T) -> FXType {
+        let day_of_mon = val.into();
+        if day_of_mon > 31 {
+            panic!("Day of month cannot be greater than 31");
+        }
+        FXType::DayOfMonth(day_of_mon)
+    }
+
+    fn seq_num<T: Into<u64>>(val: T) -> FXType {
+        FXType::SeqNum(val.into())
+    }
+
+    fn num_in_grp<T: Into<u32>>(val: T) -> FXType {
+        FXType::NumInGroup(val.into())
+    }
+
+    fn float<T: Into<f64>>(val: T) -> FXType {
+        FXType::Float(val.into())
+    }
+
+    fn price<T: Into<f64>>(val: T) -> FXType {
+        FXType::Price(val.into())
+    }
+
+    fn price_offset<T: Into<f64>>(val: T) -> FXType {
+        FXType::PriceOffset(val.into())
+    }
+
+    fn amount<T: Into<f64>>(val: T) -> FXType {
+        FXType::Amt(val.into())
+    }
+
+    fn percent<T: Into<f64>>(val: T) -> FXType {
+        FXType::Percent(val.into())
+    }
+
+    fn qty<T: Into<f64>>(val: T) -> FXType {
+        FXType::Qty(val.into())
+    }
+
+    fn char<T: Into<char>>(val: T) -> FXType {
+        let char_type = val.into();
+        if !char_type.is_ascii() {
+            panic!("Non ascii character values are not supported");
+        }
+        FXType::Char(char_type)
+    }
+
+    fn bool<T: Into<bool>>(val: T) -> FXType {
+        FXType::Bool(val.into())
+    }
+
+    fn string(val: &str) -> FXType {
+        FXType::Str(val.to_string())
+    }
+
+    fn currency(val: &str) -> FXType {
+        FXType::Currency(val.to_string())
+    }
+
+    fn country(val: &str) -> FXType {
+        FXType::Country(val.to_string())
+    }
+
+    fn exchange(val: &str) -> FXType {
+        FXType::Exchange(val.to_string())
+    }
+
+    fn local_mkt_date(val: &str) -> FXType {
+        FXType::LocalMktDate(val.to_string())
+    }
+
+    fn multi_val_str(val: &str) -> FXType {
+        FXType::MultiValueStr(val.to_string())
+    }
+
+    fn utc_date(val: &str) -> FXType {
+        FXType::UtcDate(val.to_string())
+    }
+
+    fn utc_time_only(val: &str) -> FXType {
+        FXType::UtcTimeOnly(val.to_string())
+    }
+
+    fn utc_timestamp(val: &str) -> FXType {
+        FXType::UtcTimestamp(val.to_string())
+    }
 }
 
 #[derive(Debug)]
@@ -45,6 +156,26 @@ impl FXField {
             tag: tagnum,
             value: val
         }
+    }
+
+    fn int_field<T: Into<i64>>(tagnum: u32, val: T) -> FXField {
+        FXField::new(tagnum, FXType::int(val))
+    }
+
+    fn length_field<T: Into<u32>>(tagnum: u32, val: T) -> FXField {
+        FXField::new(tagnum, FXType::length(val))
+    }
+
+    fn tag_num_field<T: Into<u32>>(tagnum: u32, val: T) -> FXField {
+        FXField::new(tagnum, FXType::tagnum(val))
+    }
+
+    fn day_of_month_field<T: Into<u32>>(tagnum: u32, val: T) -> FXField {
+        FXField::new(tagnum, FXType::day_of_month(val))
+    }
+
+    fn seqnum_field<T: Into<u64>>(tagnum: u32, val: T) -> FXField {
+        FXField::new(tagnum, FXType::seq_num(val))
     }
 }
 
