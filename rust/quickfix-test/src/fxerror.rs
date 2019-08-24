@@ -56,3 +56,39 @@ impl fmt::Display for MessageParseError {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct FixTypeParseError {
+    pub kind: FixTypeParseErrorKind
+}
+
+impl fmt::Display for FixTypeParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.kind {
+            FixTypeParseErrorKind::NotIntegerValue => {
+                write!(f, "Cannot convert. This is not an Integer value")
+            },
+            FixTypeParseErrorKind::NotCharValue => {
+                write!(f, "Cannot convert. This is not a Char value")
+            },
+            FixTypeParseErrorKind::NotFloatValue => {
+                write!(f, "Cannot convert. This is not a Float value")
+            },
+            FixTypeParseErrorKind::NotStrValue => {
+                write!(f, "Cannot convert. This is not a String value")
+            }
+        }
+    }
+}
+
+impl Error for FixTypeParseError {
+    // TODO
+}
+
+#[derive(Debug)]
+pub enum FixTypeParseErrorKind {
+    NotIntegerValue,
+    NotFloatValue,
+    NotStrValue,
+    NotCharValue,
+}

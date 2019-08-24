@@ -47,6 +47,14 @@ impl FXType {
         FXType::Int(val.into())
     }
 
+    fn get_int(&self) -> Result<i64, FixTypeParseError> {
+        if let FXType::Int(i) = self {
+            Ok(*i)
+        } else {
+            Err(FixTypeParseError {kind: FixTypeParseErrorKind::NotIntegerValue})
+        }
+    }
+
     fn length<T: Into<u32>>(val: T) -> FXType {
         FXType::Length(val.into())
     }
@@ -111,8 +119,17 @@ impl FXType {
         FXType::Str(val.to_string())
     }
 
+
     fn currency(val: &str) -> FXType {
         FXType::Currency(val.to_string())
+    }
+
+    fn get_currency(&self) -> Result<String, FixTypeParseError> {
+        if let FXType::Str(s) = self {
+            Ok(s.to_string())
+        } else {
+            Err(FixTypeParseError {kind: FixTypeParseErrorKind::NotIntegerValue})
+        }
     }
 
     fn country(val: &str) -> FXType {
@@ -215,7 +232,7 @@ pub struct Group {
 
 
 impl Group {
-    fn new(delim: u32, capacity: usize) -> Self {
+    pub fn new(delim: u32, capacity: usize) -> Self {
         Self {
             delim,
             group_vec: Vec::with_capacity(capacity)
@@ -270,7 +287,7 @@ impl<'a> IntoIterator for &'a mut Group {
 }
 
 
-trait GenericMessageBuilder {
+pub trait GenericMessageBuilder {
     fn add_field(&mut self, tag: u32, val: FXType);
     fn get_field(&self, tag: u32) -> Option<&FXField>;
     fn set_group(&mut self, tag: u32, val: u32) -> &mut Group;
@@ -320,13 +337,14 @@ impl GenericMessageBuilder for GroupInstance {
     }
 }
 
+#[derive(Debug)]
 pub struct Message {
     fields: FieldMap,
     group: HashMap<u32, Group>
 }
 
 impl Message {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             fields: FieldMap::new(),
             group: HashMap::new()

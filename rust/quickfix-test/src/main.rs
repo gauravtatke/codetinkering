@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
+#![allow(unused_variables)]
 
 mod serial;
 mod fields;
@@ -9,7 +10,7 @@ mod newfield;
 mod fxerror;
 mod codegen;
 
-
+use crate::newfield::{FXType, FXField, Message, Group, GroupInstance, GenericMessageBuilder};
 // fn to_string<T>(value: &T) -> Result<String, FixError> 
 //     where T: Serialize {
 //         let mut serializer = FixSerializer { msg: String::new()};
@@ -20,8 +21,12 @@ mod codegen;
 // 8=FIX.4.4|9=126|35=A|49=theBroker.12345|56=CSERVER|34=1|52=20170117- 08:03:04|57=TRADE|50=any_string|98=0|108=30|141=Y|553=12345|554=passw0rd!|10=131| 
 
 fn create_message() {
-    // let mut msg = newfield::Message::new();
-
+    let mut msg = Message::new();
+    msg.add_field(44, FXType::Price(1.4));
+    msg.add_field(38, FXType::Int(10000));
+    msg.add_field(40, FXType::Currency("EUR".to_string()));
+    msg.add_field(54, FXType::Bool(true));
+    println!("Message = {:?}", msg);
 }
 
 fn main() {
@@ -39,5 +44,7 @@ fn main() {
     //     println!("{:?}", f);
     // }
 
-    codegen::generate_code("src/fix43/fields.rs", dict);
+    // codegen::generate_code("src/fix43/fields.rs", dict);
+    create_message();
+
 }
