@@ -1,9 +1,10 @@
 use std::convert::TryFrom;
 use std::fmt::{self, Formatter};
+use std::str::FromStr;
 
 use crate::quickfix_errors::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum FixType {
     INT,
     FLOAT,
@@ -12,11 +13,18 @@ pub enum FixType {
     CHAR
 }
 
-#[derive(Debug)]
-pub struct FixTypeField {
-    field_type: FixType,
-    data: String
-}
+// seems unnecessaery
+// #[derive(Debug)]
+// pub struct FixTypeField {
+//     pub field_type: FixType,
+//     pub data: String
+// }
+
+// impl fmt::Display for FixTypeField {
+//     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+//         write!(f, "{}", self.data)
+//     }
+// }
 
 #[derive(Debug, Clone, Copy)]
 pub struct Int (i64);
@@ -33,14 +41,14 @@ impl fmt::Display for Int {
     }
 }
 
-impl From<Int> for FixTypeField {
-    fn from(value: Int) -> FixTypeField {
-        FixTypeField {
-            field_type: FixType::INT,
-            data: value.to_string()
-        }
-    }
-}
+// impl From<Int> for FixTypeField {
+//     fn from(value: Int) -> FixTypeField {
+//         FixTypeField {
+//             field_type: FixType::INT,
+//             data: value.to_string()
+//         }
+//     }
+// }
 
 impl<T:Into<i64>> From<T> for Int {
     fn from(value: T) -> Int {
@@ -48,22 +56,35 @@ impl<T:Into<i64>> From<T> for Int {
     }
 }
 
-impl TryFrom<FixTypeField> for Int {
-    type Error = FixTypeFieldParseError;
+// impl TryFrom<FixTypeField> for Int {
+//     type Error = FixTypeFieldParseError;
 
-    fn try_from(value: FixTypeField) -> Result<Self, Self::Error> {
-        match value.field_type {
-            FixType::INT => {
-                match value.data.parse::<i64>() {
-                    Ok(i) => Ok(Int::new(i)),
-                    Err(_) => Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotInt
-                    })
-                } 
-            },
-            _ => Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotInt
-                    })
+//     fn try_from(value: FixTypeField) -> Result<Self, Self::Error> {
+//         match value.field_type {
+//             FixType::INT => {
+//                 match value.data.parse::<i64>() {
+//                     Ok(i) => Ok(Int::new(i)),
+//                     Err(_) => Err(FixTypeFieldParseError {
+//                         kind: FixTypeFieldParseErrorKind::NotInt
+//                     })
+//                 } 
+//             },
+//             _ => Err(FixTypeFieldParseError {
+//                         kind: FixTypeFieldParseErrorKind::NotInt
+//                     })
+//         }
+//     }
+// }
+
+impl FromStr for Int {
+    type Err = FixTypeFieldParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse::<i64>() {
+            Ok(i) => Ok(Int::new(i)),
+            Err(_) => Err(FixTypeFieldParseError {
+                    kind: FixTypeFieldParseErrorKind::NotInt
+                })
         }
     }
 }
@@ -83,14 +104,14 @@ impl fmt::Display for Float {
     }
 }
 
-impl From<Float> for FixTypeField {
-    fn from(value: Float) -> FixTypeField {
-        FixTypeField {
-            field_type: FixType::FLOAT,
-            data: value.to_string()
-        }
-    }
-}
+// impl From<Float> for FixTypeField {
+//     fn from(value: Float) -> FixTypeField {
+//         FixTypeField {
+//             field_type: FixType::FLOAT,
+//             data: value.to_string()
+//         }
+//     }
+// }
 
 impl<T:Into<f64>> From<T> for Float {
     fn from(value: T) -> Float {
@@ -98,25 +119,38 @@ impl<T:Into<f64>> From<T> for Float {
     }
 }
 
-impl TryFrom<FixTypeField> for Float {
-    type Error = FixTypeFieldParseError;
+impl FromStr for Float {
+    type Err = FixTypeFieldParseError;
 
-    fn try_from(value: FixTypeField) -> Result<Self, Self::Error> {
-        match value.field_type {
-            FixType::FLOAT => {
-                match value.data.parse::<f64>() {
-                    Ok(i) => Ok(Float::new(i)),
-                    Err(_) => Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotFloat
-                    })
-                } 
-            },
-            _ => Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotFloat
-                    })
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse::<f64>() {
+            Ok(f) => Ok(Float::new(f)),
+            Err(_) => Err(FixTypeFieldParseError {
+                kind: FixTypeFieldParseErrorKind::NotFloat
+            })
         }
     }
 }
+
+// impl TryFrom<FixTypeField> for Float {
+//     type Error = FixTypeFieldParseError;
+
+//     fn try_from(value: FixTypeField) -> Result<Self, Self::Error> {
+//         match value.field_type {
+//             FixType::FLOAT => {
+//                 match value.data.parse::<f64>() {
+//                     Ok(i) => Ok(Float::new(i)),
+//                     Err(_) => Err(FixTypeFieldParseError {
+//                         kind: FixTypeFieldParseErrorKind::NotFloat
+//                     })
+//                 } 
+//             },
+//             _ => Err(FixTypeFieldParseError {
+//                         kind: FixTypeFieldParseErrorKind::NotFloat
+//                     })
+//         }
+//     }
+// }
 
 // #[derive(Debug)]
 // pub struct Str (String);
@@ -142,14 +176,14 @@ impl TryFrom<FixTypeField> for Float {
 //     }
 // }
 
-impl From<String> for FixTypeField {
-    fn from(value: String) -> FixTypeField {
-        FixTypeField {
-            field_type: FixType::STRING,
-            data: value
-        }
-    }
-}
+// impl From<String> for FixTypeField {
+//     fn from(value: String) -> FixTypeField {
+//         FixTypeField {
+//             field_type: FixType::STRING,
+//             data: value
+//         }
+//     }
+// }
 
 // impl From<FixTypeField> for Str {
 //     fn from(value: FixTypeField) -> Str {
@@ -157,11 +191,11 @@ impl From<String> for FixTypeField {
 //     }
 // }
 
-impl From<FixTypeField> for String {
-    fn from(value: FixTypeField) -> String {
-        value.data.to_string()
-    }
-}
+// impl From<FixTypeField> for String {
+//     fn from(value: FixTypeField) -> String {
+//         value.data.to_string()
+//     }
+// }
 
 
 #[derive(Debug, Clone, Copy)]
@@ -179,14 +213,14 @@ impl fmt::Display for Char {
     }
 }
 
-impl From<Char> for FixTypeField {
-    fn from(value: Char) -> FixTypeField {
-        FixTypeField {
-            field_type: FixType::CHAR,
-            data: value.to_string()
-        }
-    }
-}
+// impl From<Char> for FixTypeField {
+//     fn from(value: Char) -> FixTypeField {
+//         FixTypeField {
+//             field_type: FixType::CHAR,
+//             data: value.to_string()
+//         }
+//     }
+// }
 
 impl<T:Into<char>> From<T> for Char {
     fn from(value: T) -> Char {
@@ -194,53 +228,69 @@ impl<T:Into<char>> From<T> for Char {
     }
 }
 
-impl TryFrom<FixTypeField> for Char {
-    type Error = FixTypeFieldParseError;
+impl FromStr for Char {
+    type Err = FixTypeFieldParseError;
 
-    fn try_from(value: FixTypeField) -> Result<Self, Self::Error> {
-        match value.field_type {
-            FixType::CHAR => {
-                match value.data.parse::<char>() {
-                    Ok(i) => Ok(Char::new(i)),
-                    Err(_) => Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotChar
-                    })
-                } 
-            },
-            _ => Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotChar
-                    })
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse::<char>() {
+            Ok(c) if c.is_ascii() => Ok(Char::new(c)),
+            Ok(c) => Err(FixTypeFieldParseError {
+                kind: FixTypeFieldParseErrorKind::NotChar
+            }),
+            Err(_) => Err(FixTypeFieldParseError {
+                kind: FixTypeFieldParseErrorKind::NotChar
+            })
         }
     }
 }
 
+// impl TryFrom<FixTypeField> for Char {
+//     type Error = FixTypeFieldParseError;
+
+//     fn try_from(value: FixTypeField) -> Result<Self, Self::Error> {
+//         match value.field_type {
+//             FixType::CHAR => {
+//                 match value.data.parse::<char>() {
+//                     Ok(i) => Ok(Char::new(i)),
+//                     Err(_) => Err(FixTypeFieldParseError {
+//                         kind: FixTypeFieldParseErrorKind::NotChar
+//                     })
+//                 } 
+//             },
+//             _ => Err(FixTypeFieldParseError {
+//                         kind: FixTypeFieldParseErrorKind::NotChar
+//                     })
+//         }
+//     }
+// }
+
 #[derive(Debug, Clone, Copy)]
-pub struct Bool (bool);
+pub struct Bool (char);
 
 impl Bool {
     pub fn new<T: Into<bool>>(value: T) -> Bool {
-        Bool (value.into())
+        if value.into() {
+            Bool ('Y')
+        } else {
+            Bool ('N')
+        }
     }
 }
 
 impl fmt::Display for Bool {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        if self.0 {
-            write!(f, "{}", 'Y')
-        } else {
-            write!(f, "{}", 'N')
-        }
+        write!(f, "{}", self.0)
     }
 }
 
-impl From<Bool> for FixTypeField {
-    fn from(value: Bool) -> FixTypeField {
-        FixTypeField {
-            field_type: FixType::BOOL,
-            data: value.to_string()
-        }
-    }
-}
+// impl From<Bool> for FixTypeField {
+//     fn from(value: Bool) -> FixTypeField {
+//         FixTypeField {
+//             field_type: FixType::BOOL,
+//             data: value.to_string()
+//         }
+//     }
+// }
 
 impl<T:Into<bool>> From<T> for Bool {
     fn from(value: T) -> Bool {
@@ -248,25 +298,48 @@ impl<T:Into<bool>> From<T> for Bool {
     }
 }
 
-impl TryFrom<FixTypeField> for Bool {
-    type Error = FixTypeFieldParseError;
+impl FromStr for Bool {
+    type Err = FixTypeFieldParseError;
 
-    fn try_from(value: FixTypeField) -> Result<Self, Self::Error> {
-        match value.field_type {
-            FixType::BOOL => {
-                match value.data.parse::<bool>() {
-                    Ok(i) => Ok(Bool::new(i)),
-                    Err(_) => Err(FixTypeFieldParseError {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse::<char>() {
+            Ok(ch) => {
+                if ch.eq_ignore_ascii_case(&'y') {
+                    Ok(Bool::new(true))
+                } else if ch.eq_ignore_ascii_case(&'n') {
+                    Ok(Bool::new(false))
+                } else {
+                    Err(FixTypeFieldParseError {
                         kind: FixTypeFieldParseErrorKind::NotBool
                     })
-                } 
+                }
             },
-            _ => Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotBool
-                    })
+            Err(_) => Err(FixTypeFieldParseError {
+                kind: FixTypeFieldParseErrorKind::NotBool
+            })
         }
     }
 }
+
+// impl TryFrom<FixTypeField> for Bool {
+//     type Error = FixTypeFieldParseError;
+
+//     fn try_from(value: FixTypeField) -> Result<Self, Self::Error> {
+//         match value.field_type {
+//             FixType::BOOL => {
+//                 match value.data.parse::<bool>() {
+//                     Ok(i) => Ok(Bool::new(i)),
+//                     Err(_) => Err(FixTypeFieldParseError {
+//                         kind: FixTypeFieldParseErrorKind::NotBool
+//                     })
+//                 } 
+//             },
+//             _ => Err(FixTypeFieldParseError {
+//                         kind: FixTypeFieldParseErrorKind::NotBool
+//                     })
+//         }
+//     }
+// }
 
 
 #[cfg(test)]

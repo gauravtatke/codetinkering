@@ -17,7 +17,7 @@ pub enum FixTypeFieldParseErrorKind {
 
 impl fmt::Display for FixTypeFieldParseError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", "Cannot convert to MessageField")
+        write!(f, "{}", "Cannot convert to FixField")
     }
 }
 
