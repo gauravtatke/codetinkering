@@ -10,7 +10,7 @@ pub enum FixType {
     FLOAT,
     STRING,
     BOOL,
-    CHAR
+    CHAR,
 }
 
 // seems unnecessaery
@@ -27,11 +27,11 @@ pub enum FixType {
 // }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Int (i64);
+pub struct Int(i64);
 
 impl Int {
     pub fn new<T: Into<i64>>(value: T) -> Int {
-        Int (value.into())
+        Int(value.into())
     }
 }
 
@@ -50,7 +50,7 @@ impl fmt::Display for Int {
 //     }
 // }
 
-impl<T:Into<i64>> From<T> for Int {
+impl<T: Into<i64>> From<T> for Int {
     fn from(value: T) -> Int {
         Int::new(value)
     }
@@ -67,7 +67,7 @@ impl<T:Into<i64>> From<T> for Int {
 //                     Err(_) => Err(FixTypeFieldParseError {
 //                         kind: FixTypeFieldParseErrorKind::NotInt
 //                     })
-//                 } 
+//                 }
 //             },
 //             _ => Err(FixTypeFieldParseError {
 //                         kind: FixTypeFieldParseErrorKind::NotInt
@@ -83,18 +83,18 @@ impl FromStr for Int {
         match s.parse::<i64>() {
             Ok(i) => Ok(Int::new(i)),
             Err(_) => Err(FixTypeFieldParseError {
-                    kind: FixTypeFieldParseErrorKind::NotInt
-                })
+                kind: FixTypeFieldParseErrorKind::NotInt,
+            }),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Float (f64);
+pub struct Float(f64);
 
 impl Float {
     pub fn new<T: Into<f64>>(value: T) -> Float {
-        Float (value.into())
+        Float(value.into())
     }
 }
 
@@ -113,7 +113,7 @@ impl fmt::Display for Float {
 //     }
 // }
 
-impl<T:Into<f64>> From<T> for Float {
+impl<T: Into<f64>> From<T> for Float {
     fn from(value: T) -> Float {
         Float::new(value)
     }
@@ -126,8 +126,8 @@ impl FromStr for Float {
         match s.parse::<f64>() {
             Ok(f) => Ok(Float::new(f)),
             Err(_) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotFloat
-            })
+                kind: FixTypeFieldParseErrorKind::NotFloat,
+            }),
         }
     }
 }
@@ -143,7 +143,7 @@ impl FromStr for Float {
 //                     Err(_) => Err(FixTypeFieldParseError {
 //                         kind: FixTypeFieldParseErrorKind::NotFloat
 //                     })
-//                 } 
+//                 }
 //             },
 //             _ => Err(FixTypeFieldParseError {
 //                         kind: FixTypeFieldParseErrorKind::NotFloat
@@ -197,13 +197,12 @@ impl FromStr for Float {
 //     }
 // }
 
-
 #[derive(Debug, Clone, Copy)]
-pub struct Char (char);
+pub struct Char(char);
 
 impl Char {
     pub fn new<T: Into<char>>(value: T) -> Char {
-        Char (value.into())
+        Char(value.into())
     }
 }
 
@@ -222,7 +221,7 @@ impl fmt::Display for Char {
 //     }
 // }
 
-impl<T:Into<char>> From<T> for Char {
+impl<T: Into<char>> From<T> for Char {
     fn from(value: T) -> Char {
         Char::new(value)
     }
@@ -234,12 +233,12 @@ impl FromStr for Char {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.parse::<char>() {
             Ok(c) if c.is_ascii() => Ok(Char::new(c)),
-            Ok(c) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotChar
+            Ok(_) => Err(FixTypeFieldParseError {
+                kind: FixTypeFieldParseErrorKind::NotChar,
             }),
             Err(_) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotChar
-            })
+                kind: FixTypeFieldParseErrorKind::NotChar,
+            }),
         }
     }
 }
@@ -255,7 +254,7 @@ impl FromStr for Char {
 //                     Err(_) => Err(FixTypeFieldParseError {
 //                         kind: FixTypeFieldParseErrorKind::NotChar
 //                     })
-//                 } 
+//                 }
 //             },
 //             _ => Err(FixTypeFieldParseError {
 //                         kind: FixTypeFieldParseErrorKind::NotChar
@@ -265,14 +264,14 @@ impl FromStr for Char {
 // }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Bool (char);
+pub struct Bool(char);
 
 impl Bool {
     pub fn new<T: Into<bool>>(value: T) -> Bool {
         if value.into() {
-            Bool ('Y')
+            Bool('Y')
         } else {
-            Bool ('N')
+            Bool('N')
         }
     }
 }
@@ -292,7 +291,7 @@ impl fmt::Display for Bool {
 //     }
 // }
 
-impl<T:Into<bool>> From<T> for Bool {
+impl<T: Into<bool>> From<T> for Bool {
     fn from(value: T) -> Bool {
         Bool::new(value)
     }
@@ -310,13 +309,13 @@ impl FromStr for Bool {
                     Ok(Bool::new(false))
                 } else {
                     Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotBool
+                        kind: FixTypeFieldParseErrorKind::NotBool,
                     })
                 }
-            },
+            }
             Err(_) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotBool
-            })
+                kind: FixTypeFieldParseErrorKind::NotBool,
+            }),
         }
     }
 }
@@ -332,7 +331,7 @@ impl FromStr for Bool {
 //                     Err(_) => Err(FixTypeFieldParseError {
 //                         kind: FixTypeFieldParseErrorKind::NotBool
 //                     })
-//                 } 
+//                 }
 //             },
 //             _ => Err(FixTypeFieldParseError {
 //                         kind: FixTypeFieldParseErrorKind::NotBool
@@ -341,8 +340,5 @@ impl FromStr for Bool {
 //     }
 // }
 
-
 #[cfg(test)]
-mod types_tests {
-
-}
+mod types_tests {}

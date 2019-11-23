@@ -1,19 +1,23 @@
-#[allow(unused_imports)]
-
-mod types;
-mod quickfix_errors;
 mod message;
+mod quickfix_errors;
+#[allow(unused_imports)]
+mod types;
 
+use crate::message::*;
 use crate::types::*;
 
-
 fn main() {
-    let int_fix = Int::new(-67);
-    let char_fix = Char::new('g');
-    let bool_fix = Bool::new(true);
-    let float_fix = Float::new(-65.8754);
-    // let str_fix = Str::new("my life");
-    // println!("{:?}", str_fix);
-    // println!("{}", str_fix);
-    // println!("Message field {:?}", FixTypeField::from(str_fix));
+    let mut msg = Message::new();
+    msg.header_mut().set_string(8, "FIX4.3".to_string());
+    msg.header_mut().set_string(49, "Gaurav".to_string());
+    msg.header_mut().set_string(56, "Tatke".to_string());
+
+    msg.body_mut().set_int(34, 8765);
+    msg.body_mut().set_float(44, 1.87856);
+    msg.body_mut().set_bool(654, true);
+    msg.body_mut().set_char(54, 'b');
+    msg.body_mut().set_string(1, "BOX_AccId".to_string());
+
+    msg.trailer_mut().set_int(10, 101);
+    println!("{}", msg);
 }

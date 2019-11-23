@@ -3,7 +3,7 @@ use std::fmt::{self, Formatter};
 
 #[derive(Debug)]
 pub struct FixTypeFieldParseError {
-    pub kind: FixTypeFieldParseErrorKind
+    pub kind: FixTypeFieldParseErrorKind,
 }
 
 #[derive(Debug)]
@@ -12,12 +12,12 @@ pub enum FixTypeFieldParseErrorKind {
     NotFloat,
     NotBool,
     NotString,
-    NotChar
+    NotChar,
 }
 
 impl fmt::Display for FixTypeFieldParseError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", "Cannot convert to FixField")
+        write!(f, "Cannot convert to FixField")
     }
 }
 
@@ -28,7 +28,7 @@ impl Error for FixTypeFieldParseError {
             FixTypeFieldParseErrorKind::NotFloat => "Cannot parse data into Float",
             FixTypeFieldParseErrorKind::NotBool => "Cannot parse data into Bool",
             FixTypeFieldParseErrorKind::NotChar => "Cannot parse data into Char",
-            FixTypeFieldParseErrorKind::NotString => "Cannot parse data into valid UTF8 String"
+            FixTypeFieldParseErrorKind::NotString => "Cannot parse data into valid UTF8 String",
         }
     }
 }
