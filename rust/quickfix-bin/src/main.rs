@@ -1,9 +1,13 @@
-mod message;
-mod quickfix_errors;
 #[allow(unused_imports)]
+mod message;
+mod network;
+mod quickfix_errors;
+mod session;
 mod types;
 
 use crate::message::*;
+use crate::network::*;
+use crate::session::*;
 use crate::types::*;
 
 fn main() {

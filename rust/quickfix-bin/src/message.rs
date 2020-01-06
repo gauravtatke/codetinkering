@@ -344,56 +344,175 @@ impl<'a> IntoIterator for &'a mut Group {
     }
 }
 
-// struct Header(FieldMap);
+#[derive(Debug)]
+pub struct Header(FieldMap);
+
+impl Header {
+    pub fn new() -> Self {
+        let mut header_map = FieldMap::new();
+        header_map.set_field_order(&[8, 9, 35]);
+        Header(header_map)
+    }
+
+    // pub fn with_header(other: Header) -> Self {
+    //     // Reverses sender and target ids, subids, compids, onbehalfof ids
+    //     // message type needs to be set explicitly
+    // }
+
+    pub fn set_begin_str(&mut self, s: &str) {
+        self.0.set_string(8, s.to_owned());
+    }
+
+    pub fn begin_str(&self) -> Result<String, FieldNotPresentError> {
+        self.0.get_string(8).or_else(|_| Err(FieldNotPresentError))
+    }
+
+    pub fn set_body_length<T: Into<Int>>(&mut self, length: T) {
+        self.set_int(9, length);
+    }
+
+    pub fn body_length(&self) -> Result<Int, FieldNotPresentError> {
+        self.0.get_int(9).or_else(|_| Err(FieldNotPresentError))
+    }
+
+    pub fn set_sender_compid(&mut self, id: &str) {
+        self.set_string(49, id.to_owned());
+    }
+
+    pub fn sender_compid(&self) -> Result<String, FieldNotPresentError> {
+        self.0.get_string(49).or_else(|_| Err(FieldNotPresentError))
+    }
+
+    pub fn set_target_compid(&mut self, id: &str) {
+        self.set_string(56, id.to_owned());
+    }
+
+    pub fn target_compid(&self) -> Result<String, FieldNotPresentError> {
+        self.0.get_string(56).or_else(|_| Err(FieldNotPresentError))
+    }
+
+    pub fn set_onbehalf_of_compid(&mut self, id: &str) {
+        self.set_string(115, id.to_owned());
+    }
+
+    pub fn set_deliver_to_compid(&mut self, id: &str) {
+        self.set_string(128, id.to_owned());
+    }
+
+    pub fn set_sender_subid(&mut self, id: &str) {
+        self.set_string(50, id.to_owned());
+    }
+
+    pub fn set_sender_locationid(&mut self, id: &str) {
+        self.set_string(142, id.to_owned());
+    }
+
+    pub fn set_target_subid(&mut self, id: &str) {
+        self.set_string(57, id.to_owned());
+    }
+
+    pub fn set_target_locationid(&mut self, id: &str) {
+        self.set_string(143, id.to_owned());
+    }
+
+    pub fn set_onbehalf_of_subid(&mut self, id: &str) {
+        self.set_string(116, id.to_owned());
+    }
+
+    pub fn set_onbehalf_of_locationid(&mut self, id: &str) {
+        self.set_string(144, id.to_owned());
+    }
+
+    pub fn set_deliver_to_subid(&mut self, id: &str) {
+        self.set_string(129, id.to_owned());
+    }
+
+    pub fn set_deliver_to_locationid(&mut self, id: &str) {
+        self.set_string(145, id.to_owned());
+    }
+
+    pub fn set_poss_dup_flag(&mut self, dup_flag: bool) {
+        self.set_bool(43, dup_flag);
+    }
+
+    pub fn set_poss_resend(&mut self, resend_flag: bool) {
+        self.set_bool(97, resend_flag);
+    }
+
+    pub fn set_msg_seqnum<T: Into<Int>>(&mut self, seq_num: T) {
+        self.set_int(34, seq_num);
+    }
+
+    pub fn set_msg_type(&mut self, msg_type: &str) {
+        self.set_string(35, msg_type.to_owned());
+    }
+
+    pub fn msg_type(&self) -> Result<String, FieldNotPresentError> {
+        self.0.get_string(35).or_else(|_| Err(FieldNotPresentError))
+    }
+
+    pub fn set_sending_time(&mut self, send_time: &str) {
+        // TODO: Chnage to UTC Time
+        self.set_string(52, send_time.to_owned());
+    }
+
+    pub fn sending_time(&self) -> Result<String, FieldNotPresentError> {
+        self.0.get_string(52).or_else(|_| Err(FieldNotPresentError))
+    }
+
+    pub fn iter(&self) -> FieldMapIter {
+        self.0.iter()
+    }
+}
+
+impl MessageBuilder for Header {
+    fn add_field<T: ToString>(&mut self, tag: Tag, value: T) {
+        self.0.add_field(tag, value);
+    }
+
+    fn get_field(&self, tag: Tag) -> Option<&Field> {
+        self.0.get_field(tag)
+    }
+
+    fn get_mut_field(&mut self, tag: Tag) -> Option<&mut Field> {
+        self.0.get_mut_field(tag)
+    }
+
+    fn add_group(&mut self, tag: Tag, group: Group) {
+        self.0.add_group(tag, group);
+    }
+
+    fn get_group(&self, tag: Tag) -> Option<&Group> {
+        self.0.get_group(tag)
+    }
+
+    fn get_mut_group(&mut self, tag: Tag) -> Option<&mut Group> {
+        self.0.get_mut_group(tag)
+    }
+}
 // struct Trailer(FieldMap);
 
 #[derive(Debug)]
 pub struct Message {
-    message_header: FieldMap,
+    message_header: Header,
     message_body: FieldMap,
     message_trailer: FieldMap,
 }
 
-// impl MessageBuilder for Message {
-//     fn add_field(&mut self, tag: Tag, field: Field) {
-//         self.message_body.insert(tag, field);
-//     }
-
-//     fn get_field(&self, tag: Tag) -> Option<&Field> {
-//         self.message_body.get(tag)
-//     }
-
-//     fn get_mut_field(&mut self, tag: Tag) -> Option<&mut Field> {
-//         self.message_body.get_mut(tag)
-//     }
-
-//     fn add_group(&mut self, tag: Tag, group: Group) {
-//         trailer.insert(tag, group);
-//     }
-
-//     fn get_group(&self, tag: Tag) -> Option<&Group> {
-//         trailer.get(&tag)
-//     }
-
-//     fn get_mut_group(&mut self, tag: Tag) -> Option<&mut Group> {
-//         trailer.get_mut(&tag)
-//     }
-// }
-
 impl Message {
     pub fn new() -> Self {
         Self {
-            message_header: FieldMap::new(),
+            message_header: Header::new(),
             message_body: FieldMap::new(),
             message_trailer: FieldMap::new(),
         }
     }
 
-    pub fn header(&self) -> &FieldMap {
+    pub fn header(&self) -> &Header {
         &self.message_header
     }
 
-    pub fn header_mut(&mut self) -> &mut FieldMap {
+    pub fn header_mut(&mut self) -> &mut Header {
         &mut self.message_header
     }
 
@@ -414,8 +533,8 @@ impl Message {
     }
 
     pub fn iter(&self) -> FieldMapIter {
-        let mut message_iter = FieldMapIter::new();
-        message_iter.flatten_field_map(self.header());
+        let mut message_iter = self.header().iter();
+        // message_iter.flatten_field_map(self.header());
         message_iter.flatten_field_map(self.body());
         message_iter.flatten_field_map(self.trailer());
         message_iter

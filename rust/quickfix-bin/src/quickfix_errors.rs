@@ -32,3 +32,18 @@ impl Error for FixTypeFieldParseError {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct FieldNotPresentError;
+
+impl fmt::Display for FieldNotPresentError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Mandatory field not present")
+    }
+}
+
+impl Error for FieldNotPresentError {
+    fn description(&self) -> &str {
+        "Mandatory field not present"
+    }
+}

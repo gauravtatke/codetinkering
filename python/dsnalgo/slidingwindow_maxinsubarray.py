@@ -28,7 +28,7 @@ def findmaxinsubarr_slidingwindow(arr, size):
     # elements are maintained in sorted order. The element at front of the Qi
     # is the largest and element at rear of Qi is the smallest of current
     # window.
-    dq = deque(maxlen=size)a
+    dq = deque(maxlen=size)
     for i, num in enumerate(arr[:size]):
         # this will make window of 0 to size-1 elements
         while len(dq) and num >= arr[dq[-1]]:
