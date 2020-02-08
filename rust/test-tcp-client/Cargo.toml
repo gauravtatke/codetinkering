@@ -1,0 +1,8 @@
+[package]
+name = "test-tcp-client"
+version = "0.1.0"
+authors = ["gaurav tatke <gauravtatke23@gmail.com>"]
+
+[dependencies]
+rand = "0.7.3"
+lazy_static = "1.4.0"

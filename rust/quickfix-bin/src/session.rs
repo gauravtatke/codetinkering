@@ -9,13 +9,13 @@ use crate::network::*;
 
 use serde_derive::Deserialize;
 
-const FIX42_BEGIN_STR: &'static str = "FIX.4.2";
-const FIX43_BEGIN_STR: &'static str = "FIX.4.3";
-const FIX44_BEGIN_STR: &'static str = "FIX.4.4";
+const FIX42_BEGIN_STR: &str = "FIX.4.2";
+const FIX43_BEGIN_STR: &str = "FIX.4.3";
+const FIX44_BEGIN_STR: &str = "FIX.4.4";
 
 #[derive(Debug, Deserialize)]
 pub struct SessionConfig {
-    default: SessionSetting,
+    default: DefaultSetting,
     sessions: Option<Vec<SessionSetting>>,
 }
 
@@ -27,17 +27,14 @@ impl SessionConfig {
             .read_to_string(&mut contents)
             .expect("Could not read from file");
         let mut session_config: SessionConfig = toml::from_str(&contents).unwrap();
-        if session_config.default.connection_type.is_none() {
-            panic!("connection_type not present in default section. Valid values are acceptor or initiator")
-        }
         if session_config.is_session_empty() {
             // initialize it with default
-            session_config.sessions = Some(vec![session_config.default.clone()])
+            session_config.sessions = None
         }
         session_config
     }
 
-    pub fn default_setting(&self) -> &SessionSetting {
+    pub fn default_setting(&self) -> &DefaultSetting {
         &self.default
     }
 
@@ -46,11 +43,20 @@ impl SessionConfig {
         if self.sessions.is_none() {
             return true;
         }
-        self.sessions.as_ref().iter().any(|&s| !s.is_empty())
+        for s in self.sessions.as_ref().unwrap().iter() {
+            if !s.is_empty() {
+                return false;
+            }
+        }
+        true
     }
 
     pub fn iter(&self) -> std::slice::Iter<SessionSetting> {
         self.sessions.as_ref().unwrap().iter()
+    }
+
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<SessionSetting> {
+        self.sessions.as_mut().unwrap().iter_mut()
     }
 }
 
@@ -61,14 +67,45 @@ impl IntoIterator for &SessionConfig {
     fn into_iter(self) -> Self::IntoIter {
         let new_session_option = self.sessions.clone();
         new_session_option
-            .unwrap_or_else(|| vec![self.default.clone()])
+            .unwrap_or_else(|| {
+                let mut temp_session_setting = SessionSetting::default();
+                temp_session_setting.merge_setting(&self.default);
+                vec![temp_session_setting]
+            })
             .into_iter()
     }
 }
 
+// impl IntoIterator for &mut SessionConfig {
+//     type Item = SessionSetting;
+//     type IntoIter = std::vec::IntoIter<Self::Item>;
+
+//     fn into_iter(self)
+// }
+
 #[derive(Debug, Deserialize, Clone)]
+pub struct DefaultSetting {
+    connection_type: String,
+    begin_string: Option<String>,
+    sender_compid: Option<String>,
+    target_compid: Option<String>,
+    socket_accept_port: Option<u16>,
+    socket_connect_host: Option<String>,
+    socket_connect_port: Option<u16>,
+}
+
+impl DefaultSetting {
+    pub fn set_connection_type(&mut self, conn_type: String) {
+        self.connection_type = conn_type;
+    }
+
+    pub fn get_connection_type(&self) -> String {
+        self.connection_type.clone()
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
 pub struct SessionSetting {
-    connection_type: Option<String>,
     begin_string: Option<String>,
     sender_compid: Option<String>,
     target_compid: Option<String>,
@@ -81,7 +118,84 @@ impl SessionSetting {
     pub fn is_empty(&self) -> bool {
         // returns true if all variables are None,
         // false otherwise
-        true
+        self.begin_string.is_none()
+            && self.sender_compid.is_none()
+            && self.target_compid.is_none()
+            && self.socket_accept_port.is_none()
+            && self.socket_connect_host.is_none()
+            && self.socket_connect_port.is_none()
+    }
+
+    pub fn get_socket_connect_host(&self) -> Option<String> {
+        self.socket_connect_host.clone()
+    }
+
+    pub fn get_socket_connect_port(&self) -> Option<u16> {
+        self.socket_connect_port
+    }
+
+    pub fn get_socket_accept_port(&self) -> Option<u16> {
+        self.socket_accept_port
+    }
+
+    pub fn set_begin_string(&mut self, bgn_str: String) {
+        self.begin_string = Some(bgn_str);
+    }
+
+    pub fn set_sender_compid(&mut self, s_cmp_id: String) {
+        self.sender_compid = Some(s_cmp_id);
+    }
+
+    pub fn set_target_compid(&mut self, t_cmp_id: String) {
+        self.target_compid = Some(t_cmp_id);
+    }
+
+    pub fn set_socket_accept_port(&mut self, port: u16) {
+        self.socket_accept_port = Some(port);
+    }
+
+    pub fn set_socket_connect_host(&mut self, host: String) {
+        self.socket_connect_host = Some(host);
+    }
+
+    pub fn set_socket_connect_port(&mut self, port: u16) {
+        self.socket_connect_port = Some(port);
+    }
+
+    pub fn merge_setting(&mut self, def: &DefaultSetting) -> &mut Self {
+        // takes original setting and overwrites it with other one
+        let conn_type = def.get_connection_type();
+        // if self.connection_type.is_none() {
+        //     self.set_connection_type(def.connection_type.clone().expect("connection type None"));
+        // }
+
+        if self.begin_string.is_none() {
+            self.set_begin_string(def.begin_string.clone().expect("begin str None"));
+        }
+
+        if self.sender_compid.is_none() {
+            self.set_sender_compid(def.sender_compid.clone().expect("sender compid None"));
+        }
+
+        if self.target_compid.is_none() {
+            self.set_target_compid(def.target_compid.clone().expect("target compid None"));
+        }
+
+        if self.socket_accept_port.is_none() && conn_type.eq_ignore_ascii_case("acceptor") {
+            self.set_socket_accept_port(def.socket_accept_port.expect("accept port None"));
+        }
+
+        if self.socket_connect_host.is_none() && conn_type.eq_ignore_ascii_case("initiator") {
+            self.set_socket_connect_host(
+                def.socket_connect_host.clone().expect("connect host None"),
+            );
+        }
+
+        if self.socket_connect_port.is_none() && conn_type.eq_ignore_ascii_case("initiator") {
+            self.set_socket_connect_port(def.socket_connect_port.unwrap());
+        }
+
+        self
     }
 }
 
@@ -135,7 +249,7 @@ impl SessionState {
 
 #[derive(Debug)]
 pub struct Session {
-    session_id: String,
+    pub session_id: SessionId,
     heartbeat_intrvl: u32,
     is_active: bool,
     reset_on_logon: bool,
@@ -148,7 +262,7 @@ pub struct Session {
 impl Default for Session {
     fn default() -> Self {
         Self {
-            session_id: String::new(),
+            session_id: SessionId::new("DEFAULT", "", ""),
             heartbeat_intrvl: 30,
             is_active: false,
             reset_on_disconnect: false,
@@ -161,22 +275,23 @@ impl Default for Session {
 }
 
 impl Session {
-    fn new(sid_str: String) -> Self {
-        Self {
-            session_id: sid_str,
-            ..Default::default()
-        }
+    pub fn new() -> Self {
+        Default::default()
     }
 
-    // fn with_default_settings(default_setting: &SessionSetting) -> Self {
+    fn set_session_id(&mut self, sid: SessionId) {
+        self.session_id = sid;
+    }
 
-    // }
-
-    fn with_sessionid(sid: &SessionId) -> Self {
-        Self {
-            session_id: sid.to_string(),
-            ..Default::default()
-        }
+    pub fn with_settings(setting: &SessionSetting) -> Self {
+        // setting should have begin_string, sender_compid and target_compid
+        // it should also have either accept port or (connect_host, connect_port)
+        let mut a_session = Session::new();
+        let b_str = setting.begin_string.as_ref().unwrap();
+        let sender = setting.sender_compid.as_ref().unwrap();
+        let target = setting.target_compid.as_ref().unwrap();
+        a_session.set_session_id(SessionId::new(b_str, sender, target));
+        a_session
     }
 
     fn set_socket_connector(&mut self, conn: SocketConnector) {

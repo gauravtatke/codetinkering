@@ -9,7 +9,7 @@ use crate::quickfix_errors::*;
 use crate::types::*;
 
 type Tag = u32;
-const SOH: char = '\u{01}';
+pub const SOH: char = '\u{01}';
 
 #[derive(Debug, Clone)]
 pub struct Field {
