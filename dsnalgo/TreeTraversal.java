@@ -1,5 +1,6 @@
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Stack;
 
 public class TreeTraversal {
     public static void inOrderTraversal(TreeNode root) {
@@ -8,11 +9,11 @@ public class TreeTraversal {
         }
 
         if (root.left == null && root.right == null) {
-            System.out.println(root);
+            System.out.print(root + ", ");
             return;
         }
         inOrderTraversal(root.left);
-        System.out.println(root);
+        System.out.print(root + ", ");
         inOrderTraversal(root.right);
     }
 
@@ -36,13 +37,13 @@ public class TreeTraversal {
         }
 
         if (root.left == null && root.right == null) {
-            System.out.println(root);
+            System.out.print(root + ", ");
             return;
         }
 
         postOrderTraversal(root.left);
         postOrderTraversal(root.right);
-        System.out.println(root);
+        System.out.print(root + ", ");
     }
 
     public static void levelOrderTraversal(TreeNode root) {
@@ -111,17 +112,35 @@ public class TreeTraversal {
         }
     }
 
+    public static void iterativeInOrderTraversal(TreeNode root) {
+        Stack<TreeNode> stack1 = new Stack<TreeNode>();
+        TreeNode current = root;
+        while (current != null || !stack1.empty()) {
+            if (current != null) {
+                stack1.push(current);
+                current = current.left;
+            } else if (!stack1.empty()){
+                current = stack1.pop();
+                System.out.print(current + ", ");
+                current = current.right;
+            }
+        }
+        System.out.println();
+    }
+
     public static void main(String[] args) {
         Tree tree = new Tree(1);
         tree.root.left = new TreeNode(2);
         tree.root.right = new TreeNode(3);
         tree.root.left.left = new TreeNode(4);
         tree.root.right.right = new TreeNode(5);
-        // TreeTraversal.inOrderTraversal(null);
+        TreeTraversal.inOrderTraversal(tree.root);
         //TreeTraversal.levelOrderTraversal(tree.root);
         // System.out.println(TreeTraversal.height(tree.root));
         // printGivenLevel(tree.root, 3);
-        levelOrderTraversalUsingHeight(tree.root);
+        // levelOrderTraversalUsingHeight(tree.root);
+        System.out.println();
+        TreeTraversal.iterativeInOrderTraversal(tree.root);
     }
     
 }
