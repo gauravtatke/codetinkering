@@ -9,6 +9,9 @@
 
 
 // Definition for a Node.
+
+import java.util.*;
+
 class Node {
     int val;
     Node next;
@@ -43,7 +46,7 @@ class Solution {
             return head;
         }
         
-        List<Pair> origListNodeAndNextNode = new ArrayList();
+        List<Pair> origListNodeAndNextNode = new ArrayList<Pair>();
         
         // first copy the original list as it is
         // also copy orignal list node and its next node in an array
