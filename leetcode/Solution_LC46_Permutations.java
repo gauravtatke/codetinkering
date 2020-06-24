@@ -44,7 +44,7 @@ class Solution_LC46_Permutations {
     }
 
     public static void main(String[] args) {
-        int[] nums = {1,2,3};
+        int[] nums = {1,0};
         Solution_LC46_Permutations sol = new Solution_LC46_Permutations();
         System.out.println(sol.permute(nums));
     }

@@ -69,17 +69,17 @@ def generateParenthesis_DP(n):
 
 
 def main():
-    print(generateParenthesis_backtrack2(1))
-    print(generateParenthesis_backtrack2(2))
+    # print(generateParenthesis_backtrack2(1))
+    # print(generateParenthesis_backtrack2(2))
     print(generateParenthesis_backtrack2(3))
 
-    print(generateParenthesis_backtrack1(1))
-    print(generateParenthesis_backtrack1(2))
-    print(generateParenthesis_backtrack1(3))
+    # print(generateParenthesis_backtrack1(1))
+    # print(generateParenthesis_backtrack1(2))
+    # print(generateParenthesis_backtrack1(3))
 
-    print(generateParenthesis_DP(1))
-    print(generateParenthesis_DP(2))
-    print(generateParenthesis_DP(3))
+    # print(generateParenthesis_DP(1))
+    # print(generateParenthesis_DP(2))
+    # print(generateParenthesis_DP(3))
 
 
 if __name__ == '__main__':
