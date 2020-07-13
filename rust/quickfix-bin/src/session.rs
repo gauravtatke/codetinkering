@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 use std::collections::VecDeque;
 use std::fmt::{self, Formatter};
 use std::fs::File;
@@ -13,6 +16,8 @@ const FIX42_BEGIN_STR: &str = "FIX.4.2";
 const FIX43_BEGIN_STR: &str = "FIX.4.3";
 const FIX44_BEGIN_STR: &str = "FIX.4.4";
 
+const ACCEPTOR_CONN_TYPE: &str = "acceptor";
+const INITIATOR_CONN_TYPE: &str = "initiator";
 #[derive(Debug, Deserialize)]
 pub struct SessionConfig {
     default: DefaultSetting,
@@ -88,10 +93,24 @@ pub struct DefaultSetting {
     connection_type: String,
     begin_string: Option<String>,
     sender_compid: Option<String>,
+    sender_subid: Option<String>,
+    sender_locationid: Option<String>,
     target_compid: Option<String>,
+    target_subid: Option<String>,
+    target_locationid: Option<String>,
+    on_behalf_of_compid: Option<String>,
+    on_behalf_of_subid: Option<String>,
+    on_behalf_of_locationid: Option<String>,
+    deliver_to_compid: Option<String>,
+    deliver_to_subid: Option<String>,
+    deliver_to_locationid: Option<String>,
     socket_accept_port: Option<u16>,
     socket_connect_host: Option<String>,
     socket_connect_port: Option<u16>,
+    hearbeat_interval: Option<u16>,
+    reset_on_logon: Option<char>,
+    reset_on_logout: Option<char>,
+    reset_on_disconnect: Option<char>,
 }
 
 impl DefaultSetting {
@@ -108,10 +127,25 @@ impl DefaultSetting {
 pub struct SessionSetting {
     begin_string: Option<String>,
     sender_compid: Option<String>,
+    sender_subid: Option<String>,
+    sender_locationid: Option<String>,
     target_compid: Option<String>,
+    target_subid: Option<String>,
+    target_locationid: Option<String>,
+    on_behalf_of_compid: Option<String>,
+    on_behalf_of_subid: Option<String>,
+    on_behalf_of_locationid: Option<String>,
+    deliver_to_compid: Option<String>,
+    deliver_to_subid: Option<String>,
+    deliver_to_locationid: Option<String>,
     socket_accept_port: Option<u16>,
     socket_connect_host: Option<String>,
     socket_connect_port: Option<u16>,
+    heartbeat_interval: Option<u16>,
+    reset_on_logon: Option<char>,
+    reset_on_logout: Option<char>,
+    reset_on_disconnect: Option<char>,
+    session_qualifier: Option<String>,
 }
 
 impl SessionSetting {
@@ -203,26 +237,36 @@ impl SessionSetting {
 pub struct SessionId {
     begin_string: String,
     sender_compid: String,
+    sender_subid: Option<String>,
+    sender_locationid: Option<String>,
     target_compid: String,
+    target_subid: Option<String>,
+    target_locationid: Option<String>,
+    session_qualifier: Option<String>,
     id: String,
 }
 
 impl SessionId {
-    fn new(bgn_str: &str, sender: &str, target: &str) -> Self {
+    fn new(bgn_str: &str, sender: &str, sender_sub: Option<String>, sender_loc: Option<String>, target: &str, target_sub: Option<String>, target_loc: Option<String>, s_qual: Option<String>) -> Self {
         // let mut id = String::with_capacity(16);
         // id.push_str(string: &str)
         let mut sid = SessionId {
             sender_compid: sender.to_owned(),
             target_compid: target.to_owned(),
             begin_string: bgn_str.to_owned(),
+            sender_subid: sender_sub,
+            sender_locationid: sender_loc,
+            target_subid: target_sub,
+            target_locationid: target_loc,
+            session_qualifier: s_qual,
             id: String::new(),
         };
 
-        sid.set_id();
+        sid.create_id();
         sid
     }
 
-    fn set_id(&mut self) {
+    fn create_id(&mut self) {
         let sid = self.to_string();
         self.id = sid;
     }

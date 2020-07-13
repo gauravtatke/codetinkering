@@ -1,19 +1,24 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
 #[macro_use]
 extern crate lazy_static;
 
-#[allow(unused_imports)]
 mod message;
 mod network;
 mod quickfix_errors;
 mod session;
 mod types;
+mod application;
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
 
 use crate::message::*;
+use crate::message::Store::*;
 use crate::network::*;
 use crate::session::*;
+use crate::application::*;
 use crate::types::*;
 
 fn test_message_1() -> String {
@@ -48,8 +53,11 @@ fn send_message(stream: &mut TcpStream, input_str: String) {
 
 fn main() {
     println!("running main");
-    let mut session_config = SessionConfig::from_toml("src/FixConfig.toml");
-    let acceptor = SocketConnector::new(&mut session_config);
+    let session_config = SessionConfig::from_toml("src/FixConfig.toml");
+    let mut message_store = DefaultMessageStore::new();
+    let mut log_store = DefaultLogStore::new();
+    let application = DefaultApplication::new();
+    let acceptor = SocketConnector::new(&session_config, message_store, log_store, application);
     let handles = acceptor.start();
     for handle in handles {
         handle.join().expect("thread joined has panicked");

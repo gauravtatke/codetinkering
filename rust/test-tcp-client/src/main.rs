@@ -1,7 +1,10 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
 extern crate rand;
 
 use std::io::{self, BufRead, BufReader, Read, Write};
-use std::net::{TcpStream, ToSocketAddrs};
+use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::str;
 use std::{thread, time};
 
@@ -48,7 +51,13 @@ fn send_fix_message<A: ToSocketAddrs>(addrs: A) -> io::Result<()> {
 }
 
 fn main() {
-    send_random_bytes("127.0.0.1:4375");
+    // send_random_bytes("127.0.0.1:4375");
+    match start_server() {
+        Ok(_) => {},
+        Err(e) => {
+            println!("{:?}", e);
+        }
+    }
 }
 
 fn send_random_bytes<A: ToSocketAddrs>(addr: A) {
@@ -59,4 +68,34 @@ fn send_random_bytes<A: ToSocketAddrs>(addr: A) {
         stream.write(&[b'\n']);
         thread::sleep(time::Duration::from_millis(5000));
     }
+}
+
+fn start_server() -> io::Result<usize> {
+    let listener = TcpListener::bind("127.0.0.1:4378").unwrap();
+    for stream in listener.incoming() {
+        let mut stream = stream.unwrap();
+        let mut buf_reader = BufReader::new(stream);
+        loop {
+            let byte_used = {
+                let res = match buf_reader.fill_buf() {
+                    Ok(n) => {
+                        if n.len() == 0 {
+                            println!("nothing came");
+                            break;
+                        } else {
+                            println!("{}", str::from_utf8(n).unwrap());
+                        }
+                        n
+                    },
+                    Err(e) => {
+                        println!("Error occured");
+                        return Err(e);
+                    }
+                };
+                res.len()
+            };
+            buf_reader.consume(byte_used);
+        }
+    }
+    Ok(0 as usize)
 }

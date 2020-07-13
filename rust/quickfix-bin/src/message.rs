@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
 use std::cmp::Ordering;
 use std::collections::hash_map::{Iter, IterMut};
 use std::collections::HashMap;
@@ -9,7 +11,8 @@ use crate::quickfix_errors::*;
 use crate::types::*;
 
 type Tag = u32;
-pub const SOH: char = '\u{01}';
+// pub const SOH: char = '\u{01}';
+pub const SOH: char = '|';
 
 #[derive(Debug, Clone)]
 pub struct Field {
@@ -550,6 +553,32 @@ impl fmt::Display for Message {
         }
         write!(f, "{}", printable)
     }
+}
+pub mod Store {
+    pub trait MessageStore {
+    }
+
+    pub struct DefaultMessageStore;
+    impl DefaultMessageStore {
+        pub fn new() -> Self {
+            Self
+        }
+    }
+    
+    impl MessageStore for DefaultMessageStore {
+    }
+
+    pub trait LogStore {}
+
+    pub struct DefaultLogStore;
+    impl DefaultLogStore {
+        pub fn new() -> Self {
+            Self
+        }
+    }
+    impl LogStore for DefaultLogStore {}
+
+
 }
 
 #[cfg(test)]

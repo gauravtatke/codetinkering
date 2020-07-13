@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
 use std::convert::TryFrom;
 use std::fmt::{self, Formatter};
 use std::str::FromStr;

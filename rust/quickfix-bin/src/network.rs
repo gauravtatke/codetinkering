@@ -1,8 +1,14 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 use std::collections::{HashMap, HashSet};
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Read, Write, Error};
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
 use std::str::{self, FromStr};
 use std::thread;
+
+use crate::message::Store::*;
+use crate::application::Application;
 
 use regex::Regex;
 
@@ -40,7 +46,7 @@ impl Default for SocketConnector {
     }
 }
 impl SocketConnector {
-    pub fn new(config: &mut SessionConfig) -> Self {
+    pub fn new<M: MessageStore, L: LogStore, A: Application>(config: &SessionConfig, msg_store: &mut M, log_store: &mut L) -> Self {
         let mut socket_connector = SocketConnector::default();
         socket_connector.create_sessions(config);
         socket_connector
@@ -116,12 +122,14 @@ impl SocketConnector {
 
 struct FixReader<B: BufRead> {
     buf_reader: B,
+    aux_buf: Vec<u8>,
 }
 
 impl<B: BufRead> FixReader<B> {
     fn new(buf_read: B) -> Self {
-        FixReader {
+        Self {
             buf_reader: buf_read,
+            aux_buf: Vec::with_capacity(64),
         }
     }
 
@@ -151,6 +159,49 @@ impl<B: BufRead> FixReader<B> {
         self.buf_reader.consume(bytes_used);
         Ok(bytes_used)
     }
+
+    fn read_message_new(&mut self) -> std::io::Result<String> {
+        // 8=FIX.4.4|9=5|35=0|10=10|
+        let delim = &[SOH as u8];
+        // let mut fix_ver: [u8; 10] = [0; 10]; // this will include '=' after tag 9 
+        let mut message = String::with_capacity(512);
+        // this will fill 10 bytes atleast so fix version will be retrieved
+        let ver_len = self.buf_reader.read_until(SOH as u8, &mut self.aux_buf)?;
+        // println!("version {}", str::from_utf8(&self.aux_buf[..]).unwrap());
+        if ver_len == 0 || !self.aux_buf.ends_with(delim) {
+            // either no data or partial data without any SOH is reached 
+            // this can only happen if connection is closed with no data or partial data
+            // println!("version not proper");
+            return Err(Error::new(std::io::ErrorKind::UnexpectedEof, "partial message"));
+        }
+        let body_len = self.buf_reader.read_until(SOH as u8, &mut self.aux_buf)?;
+        // println!("body len field {}", str::from_utf8(&self.aux_buf[ver_len+2..ver_len+body_len-1]).unwrap());
+        if body_len == 0 || !self.aux_buf.ends_with(delim) {
+            // println!("body len not proper");
+            return Err(Error::new(std::io::ErrorKind::UnexpectedEof, "partial message"));
+        }
+
+        let mut body_len_bytes = 0u32;
+        for byt in &self.aux_buf[ver_len+2..ver_len+body_len-1] {
+            // parse bytes into an u16
+            body_len_bytes = body_len_bytes*10 + (*byt as char).to_digit(10).unwrap(); 
+            // println!("curr len {}, prev byte {}, str rep {}", body_len_bytes, *byt, str::from_utf8(&[*byt]).unwrap());
+        }
+        // println!("calculated body len {}", body_len_bytes);
+
+        // now read exact bytes from bufreader
+        let new_len = ver_len + body_len + body_len_bytes as usize; // 7 bytes for trailer 
+        self.aux_buf.resize(self.aux_buf.len() + body_len_bytes as usize, 0u8);
+        self.buf_reader.read_exact(&mut self.aux_buf[ver_len+body_len..new_len])?;
+        let trailer = self.buf_reader.read_until(SOH as u8, &mut self.aux_buf)?;
+        if trailer == 0 || !self.aux_buf.ends_with(delim) {
+            // println!("trailer not correct");
+            return Err(Error::new(std::io::ErrorKind::UnexpectedEof, "partial message"));
+        } 
+        message.push_str(str::from_utf8(&self.aux_buf[..]).unwrap());
+        self.aux_buf.clear();
+        Ok(message)
+    }
 }
 
 impl Connecter for SocketConnector {
@@ -162,18 +213,23 @@ impl Connecter for SocketConnector {
             let new_thread = thread::Builder::new()
                 .name(format!("thread for socket {}", socket))
                 .spawn(move || {
-                    let (stream, _) = listener.accept().unwrap();
-                    let mut buff = String::with_capacity(512);
-                    let mut fix_reader = FixReader::new(BufReader::new(stream));
-                    loop {
-                        buff.clear();
-                        fix_reader.read_message(&mut buff);
-                        println!(
-                            "from thread id = {:?}, data = {}",
-                            thread::current().id(),
-                            buff
-                        );
-                        thread::sleep(std::time::Duration::from_millis(5000));
+                    for stream in listener.incoming() {
+                        let stream = stream.unwrap();
+                        // let mut buff = String::with_capacity(512);
+                        let mut fix_reader = FixReader::new(BufReader::new(stream));
+                        loop {
+                            // buff.clear();
+                            match fix_reader.read_message_new() {
+                                Ok(s) => {
+                                    println!("message read {}", s);
+                                    thread::sleep(std::time::Duration::from_millis(5000));
+                                },
+                                Err(_) => {
+                                    println!("Connection terminated");
+                                    break;
+                               }
+                           }
+                       }
                     }
                 })
                 .unwrap();
@@ -190,20 +246,27 @@ mod networkio_tests {
     use super::*;
     use crate::message::*;
     use crate::session::*;
+    use rand::prelude::*;
+    use std::thread;
+    use std::time::Duration;
+
 
     fn test_message() -> String {
         let mut msg = Message::new();
-        msg.header_mut().set_string(8, "FIX4.3".to_string());
+        // let mut rng = rand::thread_rng();
         msg.header_mut().set_string(49, "Gaurav".to_string());
         msg.header_mut().set_string(56, "Tatke".to_string());
 
-        msg.body_mut().set_int(34, 8765);
-        msg.body_mut().set_float(44, 1.87856);
-        msg.body_mut().set_bool(654, true);
+        msg.body_mut().set_int(34, rand::random::<u32>());
+        msg.body_mut().set_float(44, rand::random::<f64>());
+        msg.body_mut().set_bool(654, rand::random::<bool>());
         msg.body_mut().set_char(54, 'b');
         msg.body_mut().set_string(1, "BOX_AccId".to_string());
 
-        msg.trailer_mut().set_int(10, 101);
+        let body_len = msg.to_string().len();
+        msg.header_mut().set_int(9, body_len as u16);
+        msg.header_mut().set_string(8, "FIX.4.3".to_string());
+        msg.trailer_mut().set_int(10, rand::random::<u16>());
         msg.to_string()
     }
 
@@ -211,11 +274,30 @@ mod networkio_tests {
     fn io_test() {
         let mut session_config = SessionConfig::from_toml("src/FixConfig.toml");
         let mut acceptor = SocketConnector::new(&mut session_config);
-        let mut stream = TcpStream::connect("127.0.0.1:10114").expect("could not connect");
+        let mut stream1 = TcpStream::connect("127.0.0.1:10114").expect("could not connect");
+        // let mut stream2 = TcpStream::connect("127.0.0.1:10115").expect("could not connect");
         for i in 0..5 {
             let msg = test_message();
-            println!("seinding message: {}", msg);
-            stream.write(msg.as_bytes());
+            println!("sending message on {:?} : {}", stream1, msg);
+            stream1.write(msg.as_bytes()).unwrap();
+            // let msg = test_message();
+            // println!("sending message on {:?} : {}", stream2, msg);
+            // stream2.write(msg.as_bytes()).unwrap();
         }
+    }
+
+    #[test]
+    fn test_broken_message() {
+        let mut stream1: TcpStream = TcpStream::connect("127.0.0.1:10114").expect("could not connect");
+        let msg = test_message();
+        let (msg_part1, msg_part2) = msg.split_at(msg.len()/2);
+        // println!("Sending part 1 = {}", msg_part1);
+        // stream1.write_all(msg_part1.as_bytes()).unwrap();
+        // thread::sleep(Duration::from_millis(10000));
+        // println!("Sending part 2 = {}", msg_part2);
+        // stream1.write_all(msg_part2.as_bytes()).unwrap();
+        stream1.write_all(b"8=");
+        thread::sleep(Duration::from_millis(5000));
+        // stream1.write_all(b"FIX.4.3");
     }
 }
