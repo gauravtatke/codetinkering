@@ -247,7 +247,16 @@ pub struct SessionId {
 }
 
 impl SessionId {
-    fn new(bgn_str: &str, sender: &str, sender_sub: Option<String>, sender_loc: Option<String>, target: &str, target_sub: Option<String>, target_loc: Option<String>, s_qual: Option<String>) -> Self {
+    fn new(
+        bgn_str: &str,
+        sender: &str,
+        sender_sub: Option<String>,
+        sender_loc: Option<String>,
+        target: &str,
+        target_sub: Option<String>,
+        target_loc: Option<String>,
+        s_qual: Option<String>,
+    ) -> Self {
         // let mut id = String::with_capacity(16);
         // id.push_str(string: &str)
         let mut sid = SessionId {
@@ -306,7 +315,10 @@ pub struct Session {
 impl Default for Session {
     fn default() -> Self {
         Self {
-            session_id: SessionId::new("DEFAULT", "", ""),
+            session_id: SessionId::new(
+                "DEFAULT", "sender", None, None, 
+                "target", None, None, 
+                None),
             heartbeat_intrvl: 30,
             is_active: false,
             reset_on_disconnect: false,
@@ -334,7 +346,9 @@ impl Session {
         let b_str = setting.begin_string.as_ref().unwrap();
         let sender = setting.sender_compid.as_ref().unwrap();
         let target = setting.target_compid.as_ref().unwrap();
-        a_session.set_session_id(SessionId::new(b_str, sender, target));
+        a_session.set_session_id(SessionId::new(
+            b_str, sender, None, None, target, None, None, None,
+        ));
         a_session
     }
 

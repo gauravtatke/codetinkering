@@ -554,9 +554,9 @@ impl fmt::Display for Message {
         write!(f, "{}", printable)
     }
 }
-pub mod Store {
-    pub trait MessageStore {
-    }
+
+pub mod store {
+    pub trait MessageStore {}
 
     pub struct DefaultMessageStore;
     impl DefaultMessageStore {
@@ -564,9 +564,8 @@ pub mod Store {
             Self
         }
     }
-    
-    impl MessageStore for DefaultMessageStore {
-    }
+
+    impl MessageStore for DefaultMessageStore {}
 
     pub trait LogStore {}
 
@@ -577,8 +576,6 @@ pub mod Store {
         }
     }
     impl LogStore for DefaultLogStore {}
-
-
 }
 
 #[cfg(test)]

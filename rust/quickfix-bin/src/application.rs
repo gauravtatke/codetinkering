@@ -8,7 +8,6 @@ pub trait Application {
     fn from_app(msg: Message);
 }
 
-
 pub struct DefaultApplication;
 
 impl DefaultApplication {
