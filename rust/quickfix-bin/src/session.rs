@@ -315,10 +315,7 @@ pub struct Session {
 impl Default for Session {
     fn default() -> Self {
         Self {
-            session_id: SessionId::new(
-                "DEFAULT", "sender", None, None, 
-                "target", None, None, 
-                None),
+            session_id: SessionId::new("DEFAULT", "sender", None, None, "target", None, None, None),
             heartbeat_intrvl: 30,
             is_active: false,
             reset_on_disconnect: false,

@@ -556,7 +556,10 @@ impl fmt::Display for Message {
 }
 
 pub mod store {
-    pub trait MessageStore {}
+    pub trait MessageStore {
+        // This is for defining next/previous sequence number retrieval for sender and target
+        // currently keeping it empty.
+    }
 
     pub struct DefaultMessageStore;
     impl DefaultMessageStore {
@@ -567,7 +570,9 @@ pub mod store {
 
     impl MessageStore for DefaultMessageStore {}
 
-    pub trait LogStore {}
+    pub trait LogStore {
+        // this is just for logging the message somewhere. currently empty
+    }
 
     pub struct DefaultLogStore;
     impl DefaultLogStore {

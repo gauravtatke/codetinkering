@@ -8,6 +8,7 @@ use std::str::{self, FromStr};
 use std::thread;
 
 use crate::application::Application;
+use crate::data_dictionary::*;
 use crate::message::store::*;
 
 use regex::Regex;
@@ -257,13 +258,23 @@ impl Connecter for SocketConnector {
     fn stop() {}
 }
 
+mod validator {
+    use super::*;
+    pub fn validate_tag(msg: &str, dict: &DataDictionary) {
+        // validate that tag is correct according to data_dictionary
+        // and value is permissible
+        // get the message type
+        // then iterate over list of tags/value and verify that each
+    }
+}
+
 #[cfg(test)]
 mod networkio_tests {
     use super::*;
-    use crate::message::*;
-    use crate::message::store::*;
-    use crate::session::*;
     use crate::application::*;
+    use crate::message::store::*;
+    use crate::message::*;
+    use crate::session::*;
     use rand::prelude::*;
     use std::thread;
     use std::time::Duration;
@@ -294,7 +305,8 @@ mod networkio_tests {
         let mut log_store = DefaultLogStore::new();
         let mut msg_store = DefaultMessageStore::new();
         let app = DefaultApplication::new();
-        let mut acceptor = SocketConnector::new(&mut session_config, &mut msg_store, &mut log_store, app);
+        let mut acceptor =
+            SocketConnector::new(&mut session_config, &mut msg_store, &mut log_store, app);
         let mut stream1 = TcpStream::connect("127.0.0.1:10114").expect("could not connect");
         // let mut stream2 = TcpStream::connect("127.0.0.1:10115").expect("could not connect");
         for i in 0..5 {

@@ -5,8 +5,11 @@
 extern crate lazy_static;
 
 mod application;
+mod data_dictionary;
 mod message;
+mod message_validator;
 mod network;
+mod new_data_dictionary;
 mod quickfix_errors;
 mod session;
 mod types;
