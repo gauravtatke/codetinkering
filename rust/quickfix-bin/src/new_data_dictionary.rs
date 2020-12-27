@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, BTreeMap};
 use std::fmt;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -70,19 +70,36 @@ impl DataDict {
         }
     }
 
-    pub fn is_tag_value_valid(&self, msg_type: &str, tag: &str, val: &str) -> Result<(), Err> {
+    pub fn is_tag_value_valid(&self, tag: u32, val: &str) -> Result<(), NewFixError> {
         // returns true or false based on valid/invalid value
+        let field_entry = match self.fields_by_tag.get(&tag) {
+            // if there is not field entry then its an error
+            Some(f) => f,
+            None => return Err(NewFixError {
+                kind: NewFixErrorKind::InvalidTag,
+            })
+        };
 
+        if field_entry.field_values.is_empty() {
+            // empty field values means its free value tag
+            // TODO: verify that value can be parsed into required type
+            return Ok(());
+        } else if field_entry.field_values.get(val).is_none() {
+            return Err(NewFixError {
+                kind: NewFixErrorKind::InvalidValueForTag,
+            })
+        }
         Ok(())
     }
 }
+
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 struct FieldEntry {
     field_number: u32,
     field_name: String,
     field_type: FxStr,
-    field_values: Vec<FieldValueEntry>,
+    field_values: BTreeMap<String, FieldValueEntry>,
 }
 
 impl FieldEntry {
@@ -92,7 +109,7 @@ impl FieldEntry {
             field_number,
             field_name: field_name.to_owned(),
             field_type: ftype,
-            field_values: Vec::new(),
+            field_values: BTreeMap::new(),
         }
     }
 
@@ -119,7 +136,7 @@ impl FieldEntry {
 
 
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Hash)]
 struct FieldValueEntry {
     value: String,
     description: String,
@@ -138,7 +155,7 @@ impl FieldValueEntry {
     }
 }
 
-struct component_groups {
+struct ComponentGroups {
     cgroup_name: String,
     cgroup_fields: HashMap<u32, bool>, // field number to required mapping
 }
@@ -172,11 +189,12 @@ fn update_fields(field_node: Node, dict: & mut DataDict) {
             .children()
             .filter(|n| n.node_type() == NodeType::Element && n.has_tag_name("value"))
         {
+            let valid_value = child.attribute("enum").unwrap();
             let fvalue_entry = FieldValueEntry::new(
-                child.attribute("enum").unwrap(),
+                valid_value,
                 child.attribute("description").unwrap(),
             );
-            f_entry.field_values.push(fvalue_entry);
+            f_entry.field_values.insert(valid_value.to_string(), fvalue_entry);
             // f_entry.set_valid_value(fvalue_entry);
         }
         dict.fields_by_tag.insert(fnum, f_entry);

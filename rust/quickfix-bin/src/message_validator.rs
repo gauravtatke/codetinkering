@@ -1,7 +1,8 @@
-use crate::data_dictionary::*;
+use crate::new_data_dictionary::*;
 use crate::message::SOH;
+use crate::quickfix_errors::*;
 
-pub fn validate_tag(msg: &str, dict: &DataDictionary) -> Result<(), Err> {
+pub fn validate_tag(msg: &str, dict: &DataDict) -> Result<(), NewFixError> {
     // validate that tag is correct according to data_dictionary
     // and value is permissible
     // get the message type
@@ -10,15 +11,20 @@ pub fn validate_tag(msg: &str, dict: &DataDictionary) -> Result<(), Err> {
         let tag_and_val: Vec<&str> = tag_value_str.split('=').collect();
         let tag = match tag_and_val[0].parse::<u32>() {
             Ok(t) => t,
-            Err(e) => {
-                return Err(e);
-            }
+            Err(e) => 
+                return Err(NewFixError {
+                    kind: NewFixErrorKind::ParseError (
+                        FixTypeFieldParseErrorKind::NotInt
+                    ),
+                })
+        };
+        let val = tag_and_val[1];
+        let result = dict.is_tag_value_valid(tag, val);
+        if result.is_err() {
+        return result;
         }
-        // if dict.is_tag_value_valid(msg_type, tag_and_val[0], tag_and_val[1], msg_type) {}
-        // print something
     }
     Ok(())
-    // then iterate over list of tags/value and verify that each is according to message
 }
 
 pub fn get_message_type(msg_str: &str) -> Option<&str> {

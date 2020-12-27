@@ -47,3 +47,28 @@ impl Error for FieldNotPresentError {
         "Mandatory field not present"
     }
 }
+
+#[derive(Debug)]
+pub struct NewFixError {
+    pub kind: NewFixErrorKind,
+}
+
+#[derive(Debug)]
+pub enum NewFixErrorKind {
+    InvalidValueForTag,
+    InvalidTag,
+    ParseError(FixTypeFieldParseErrorKind),
+
+}
+
+impl fmt::Display for NewFixError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Fix Error {:?}", self.kind)
+    }
+}
+
+impl Error for NewFixError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(self)
+    }
+}

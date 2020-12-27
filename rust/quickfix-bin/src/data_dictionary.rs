@@ -121,7 +121,6 @@ impl DataDictionary {
         }
         todo!("Not working. writing a new module instead of this");
         // check if tag name is part of message groups
-        return false;
     }
 }
 
