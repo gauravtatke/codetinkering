@@ -72,11 +72,17 @@ impl DataDict {
 
     pub fn is_tag_value_valid(&self, tag: u32, val: &str) -> Result<(), NewFixError> {
         // returns true or false based on valid/invalid value
+        if val.is_empty() {
+            return Err(NewFixError {
+                kind: NewFixErrorKind::TagSpecifiedWithoutValue
+            })
+        }
+
         let field_entry = match self.fields_by_tag.get(&tag) {
             // if there is not field entry then its an error
             Some(f) => f,
             None => return Err(NewFixError {
-                kind: NewFixErrorKind::InvalidTag,
+                kind: NewFixErrorKind::UndefinedTag,
             })
         };
 
@@ -86,7 +92,7 @@ impl DataDict {
             return Ok(());
         } else if field_entry.field_values.get(val).is_none() {
             return Err(NewFixError {
-                kind: NewFixErrorKind::InvalidValueForTag,
+                kind: NewFixErrorKind::ValueOutOfRange,
             })
         }
         Ok(())

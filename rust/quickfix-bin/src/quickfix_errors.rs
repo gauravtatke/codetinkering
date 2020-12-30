@@ -57,8 +57,19 @@ pub struct NewFixError {
 pub enum NewFixErrorKind {
     InvalidValueForTag,
     InvalidTag,
+    RequiredTagMissing,
+    UndefinedTag,
+    TagSpecifiedWithoutValue,
+    ValueOutOfRange,
+    IncorrectDataFormat,
+    DecryptionProblem,
+    SignatureProblem,
+    CompIdProblem,
+    SendingTimeAccuracyProblem,
+    InvalidMessageType,
     ParseError(FixTypeFieldParseErrorKind),
-
+    InvalidBodyLength,
+    InvalidCheckcksum,
 }
 
 impl fmt::Display for NewFixError {
