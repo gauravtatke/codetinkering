@@ -23,6 +23,11 @@ pub fn validate_tag(msg: &str, dict: &DataDict) -> Result<(), NewFixError> {
         if result.is_err() {
             return result;
         }
+
+        match dict.is_tag_valid_for_message(tag, msg_type) {
+            Ok(v) => Ok(()),
+            Err(e) => Err(e),
+        };
     }
     Ok(())
 }
