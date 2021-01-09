@@ -1,5 +1,5 @@
-use crate::new_data_dictionary::*;
 use crate::message::SOH;
+use crate::new_data_dictionary::*;
 use crate::quickfix_errors::*;
 
 pub fn validate_tag(msg: &str, dict: &DataDict) -> Result<(), NewFixError> {
@@ -11,12 +11,11 @@ pub fn validate_tag(msg: &str, dict: &DataDict) -> Result<(), NewFixError> {
         let tag_and_val: Vec<&str> = tag_value_str.split('=').collect();
         let tag = match tag_and_val[0].parse::<u32>() {
             Ok(t) => t,
-            Err(e) => 
+            Err(e) => {
                 return Err(NewFixError {
-                    kind: NewFixErrorKind::ParseError (
-                        FixTypeFieldParseErrorKind::NotInt
-                    ),
+                    kind: NewFixErrorKind::ParseError(FixTypeFieldParseErrorKind::NotInt),
                 })
+            }
         };
         let val = tag_and_val[1];
         let result = dict.is_tag_value_valid(tag, val);
@@ -34,11 +33,11 @@ pub fn validate_tag(msg: &str, dict: &DataDict) -> Result<(), NewFixError> {
 
 pub fn validate_checksum(message: &str) -> Result<(), NewFixError> {
     let tag_vec: Vec<&str> = message.split(SOH).collect();
-    let recvd_checksum_field: Vec<&str> = tag_vec[tag_vec.len()-1].split('=').collect();
+    let recvd_checksum_field: Vec<&str> = tag_vec[tag_vec.len() - 1].split('=').collect();
     if !recvd_checksum_field[0].starts_with("10=") {
         return Err(NewFixError {
             kind: NewFixErrorKind::RequiredTagMissing,
-        })
+        });
     }
     let mut calc_checksum = 0u32;
     for tag in tag_vec {
@@ -47,8 +46,8 @@ pub fn validate_checksum(message: &str) -> Result<(), NewFixError> {
     let check_str = format!("{:0>3}", calc_checksum % 256);
     if check_str != recvd_checksum_field[1] {
         return Err(NewFixError {
-            kind: NewFixErrorKind::InvalidCheckcksum
-        })
+            kind: NewFixErrorKind::InvalidCheckcksum,
+        });
     }
     Ok(())
 }
@@ -56,18 +55,17 @@ pub fn validate_checksum(message: &str) -> Result<(), NewFixError> {
 pub fn validate_bodylength(message: &str) -> Result<(), NewFixError> {
     let mut body_len: u32 = 0;
     let all_tags: Vec<&str> = message.split(SOH).collect();
-    for tag in &all_tags[2..all_tags.len()-1] {
+    for tag in &all_tags[2..all_tags.len() - 1] {
         // adding 1 for SOH character
         body_len = body_len + (*tag).len() as u32 + 1;
-
     }
     let received_body_len = get_body_length(message)?;
     if received_body_len == body_len {
-        return Ok(())
+        return Ok(());
     }
     return Err(NewFixError {
-        kind: NewFixErrorKind::InvalidBodyLength
-    })
+        kind: NewFixErrorKind::InvalidBodyLength,
+    });
 }
 
 pub fn get_message_type(msg_str: &str) -> Option<&str> {
@@ -96,16 +94,17 @@ pub fn get_body_length(msg_str: &str) -> Result<u32, NewFixError> {
             let tag_value_str: Vec<&str> = tag_value.split('=').collect();
             match tag_value_str[1].parse::<u32>() {
                 Ok(num) => return Ok(num),
-                Err(e) => return Err(NewFixError {
-                        kind: NewFixErrorKind::ParseError(
-                            FixTypeFieldParseErrorKind::NotInt),
-                })
+                Err(e) => {
+                    return Err(NewFixError {
+                        kind: NewFixErrorKind::ParseError(FixTypeFieldParseErrorKind::NotInt),
+                    })
+                }
             }
         }
     }
     // tag not found, raise error
     Err(NewFixError {
-        kind: NewFixErrorKind::RequiredTagMissing
+        kind: NewFixErrorKind::RequiredTagMissing,
     })
 }
 

@@ -1,15 +1,15 @@
-use std::collections::{HashMap, HashSet, BTreeMap};
+use std::cmp::{Eq, PartialEq};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::convert::Into;
 use std::fmt;
 use std::fs::File;
+use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use std::path;
-use std::cmp::{PartialEq, Eq};
-use std::convert::Into;
-use std::hash::{Hash, Hasher};
 
-use roxmltree::{Document, Node, NodeType};
 use crate::message::Field;
 use crate::quickfix_errors::*;
+use roxmltree::{Document, Node, NodeType};
 
 type FxStr = &'static str;
 
@@ -50,14 +50,19 @@ lazy_static! (
 pub struct DataDict {
     fields_by_tag: HashMap<u32, FieldEntry>,
     fields_by_name: HashMap<String, u32>,
-    components: HashMap<String, ComponentEntry>,
+    components: HashMap<String, Component>,
+    groups: HashMap<String, Group>,
+    messages: HashMap<String, Message>,
 }
 
 impl DataDict {
     pub fn new() -> Self {
         Self {
             fields_by_tag: HashMap::new(),
-            fields_by_name: HashMap::new()
+            fields_by_name: HashMap::new(),
+            components: HashMap::new(),
+            groups: HashMap::new(),
+            messages: HashMap::new(),
         }
     }
 
@@ -69,16 +74,18 @@ impl DataDict {
         // returns true or false based on valid/invalid value
         if val.is_empty() {
             return Err(NewFixError {
-                kind: NewFixErrorKind::TagSpecifiedWithoutValue
-            })
+                kind: NewFixErrorKind::TagSpecifiedWithoutValue,
+            });
         }
 
         let field_entry = match self.fields_by_tag.get(&tag) {
             // if there is not field entry then its an error
             Some(f) => f,
-            None => return Err(NewFixError {
-                kind: NewFixErrorKind::UndefinedTag,
-            })
+            None => {
+                return Err(NewFixError {
+                    kind: NewFixErrorKind::UndefinedTag,
+                })
+            }
         };
 
         if field_entry.field_values.is_empty() {
@@ -88,12 +95,11 @@ impl DataDict {
         } else if field_entry.field_values.get(val).is_none() {
             return Err(NewFixError {
                 kind: NewFixErrorKind::ValueOutOfRange,
-            })
+            });
         }
         Ok(())
     }
 }
-
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 struct FieldEntry {
@@ -117,25 +123,7 @@ impl FieldEntry {
     fn get_field_name(&self) -> &str {
         &self.field_name.as_str()
     }
-
-    // fn set_valid_values(&mut self, value: FieldValueEntry) {
-    //     self.field_values.insert(value);
-    // }
 }
-
-// impl Hash for FieldEntry {
-//     fn hash<H: Hasher>(&self, state: &mut H) {
-//         self.field_name.hash(state);
-//     }
-// }
-//
-// impl PartialEq<u32> for FieldEntry {
-//     fn eq(&self, other: &u32) -> bool {
-//         self.field_number == *other
-//     }
-// }
-
-
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 struct FieldValueEntry {
@@ -157,16 +145,15 @@ impl FieldValueEntry {
 }
 
 #[derive(Debug)]
-struct ComponentEntry {
+struct Component {
     component_name: String,
     component_fields: HashMap<u32, bool>, // field number to required mapping
-    component_group: HashMap<String, bool> // component group to required mapping
-
+    component_group: HashMap<String, bool>, // component group to required mapping
 }
 
-impl ComponentEntry {
+impl Component {
     fn new(name: &str) -> Self {
-        Self {
+        Component {
             component_name: name.to_owned(),
             component_fields: HashMap::new(),
             component_group: HashMap::new(),
@@ -193,41 +180,48 @@ impl Group {
     }
 }
 
-// impl PartialEq<FxStr> for FieldValueEntry {
-//     // impl PartialEq so that any &str can be compared to FieldValueEntry
-//     fn eq(&self, other: &FxStr) -> bool {
-//         self.value.as_str() == *other
-//     }
-// }
-//
-// impl Hash for FieldValueEntry {
-//     // impl hash so that just &str can be used to get the fieldvalue entry from dict
-//     // it is done because from fix message, we will only have &str
-//     fn hash<H: Hasher>(&self, state: &mut H) {
-//         self.value.hash(state);
-//     }
-// }
+#[derive(Debug)]
+struct Message {
+    name: String,
+    m_type: String,
+    category: String,
+    fields: HashMap<u32, bool>,        // field tag to required
+    groups: HashMap<String, bool>,     // group name to required mapping
+    components: HashMap<String, bool>, // component to required mapping
+}
 
+impl Message {
+    fn new(msg_name: &str, msg_type: &str, msg_cat: &str) -> Self {
+        Self {
+            name: msg_name.to_owned(),
+            m_type: msg_type.to_owned(),
+            category: msg_cat.to_owned(),
+            fields: HashMap::new(),
+            groups: HashMap::new(),
+            components: HashMap::new(),
+        }
+    }
+}
 
-fn update_fields(field_node: Node, dict: & mut DataDict) {
+fn update_fields(field_node: Node, dict: &mut DataDict) {
     for node in field_node
         .children()
         .filter(|n| n.node_type() == NodeType::Element)
     {
         let fname = node.attribute("name").unwrap();
         let fnum = node.attribute("number").unwrap().parse::<u32>().unwrap();
-        let ftype= node.attribute("type").unwrap();
+        let ftype = node.attribute("type").unwrap();
         let mut f_entry = FieldEntry::new(fnum, fname, ftype);
         for child in node
             .children()
             .filter(|n| n.node_type() == NodeType::Element && n.has_tag_name("value"))
         {
             let valid_value = child.attribute("enum").unwrap();
-            let fvalue_entry = FieldValueEntry::new(
-                valid_value,
-                child.attribute("description").unwrap(),
-            );
-            f_entry.field_values.insert(valid_value.to_string(), fvalue_entry);
+            let fvalue_entry =
+                FieldValueEntry::new(valid_value, child.attribute("description").unwrap());
+            f_entry
+                .field_values
+                .insert(valid_value.to_string(), fvalue_entry);
             // f_entry.set_valid_value(fvalue_entry);
         }
         dict.fields_by_tag.insert(fnum, f_entry);
@@ -235,42 +229,152 @@ fn update_fields(field_node: Node, dict: & mut DataDict) {
     }
 }
 
-fn component_handler(comp_node: Node, dict: &mut DataDict) {
-    for node in comp_node
+fn create_group(group_node: Node, dict: &mut DataDict) -> Group {
+    // create group, subgroup and components entry and return
+    let group_name = group_node.attribute("name").unwrap();
+    let mut group = Group::new(group_name);
+    for child_node in group_node
         .children()
         .filter(|n| n.node_type() == NodeType::Element)
     {
-        let comp_name = node.attribute("name").unwrap();
-        let mut cmp_entry = ComponentEntry::new(comp_name);
+        match child_node.tag_name().name() {
+            "field" => {
+                let field_tag = child_node
+                    .attribute("name")
+                    .and_then(|n| dict.fields_by_name.get(n))
+                    .unwrap();
+                let required = child_node
+                    .attribute("required")
+                    .map(|req| req.eq_ignore_ascii_case("y"))
+                    .unwrap();
+                group.group_fields.insert(*field_tag, required);
+            }
+            "component" => {
+                let component_name = child_node.attribute("name").unwrap();
+                let required = child_node
+                    .attribute("required")
+                    .map(|req| req.eq_ignore_ascii_case("y"))
+                    .unwrap();
+                group
+                    .group_components
+                    .insert(component_name.to_string(), required);
+            }
+            "group" => {
+                let sub_group_name = child_node.attribute("name").unwrap();
+                let required = child_node
+                    .attribute("required")
+                    .map(|req| req.eq_ignore_ascii_case("y"))
+                    .unwrap();
+                group
+                    .sub_groups
+                    .insert(sub_group_name.to_string(), required);
+                if dict.groups.get(sub_group_name).is_none() {
+                    let sub_group = create_group(child_node, dict);
+                    dict.groups.insert(sub_group_name.to_string(), sub_group);
+                }
+            }
+            _ => panic!("Unknown xml tag in groups. Aborting."),
+        }
+    }
+    group
+}
+
+fn component_handler(component_node: Node, dict: &mut DataDict) {
+    for node in component_node
+        .children()
+        .filter(|n| n.node_type() == NodeType::Element)
+    {
+        let component_name = node.attribute("name").unwrap();
+        let mut component_entry = Component::new(component_name);
         for field_group in node
             .children()
             .filter(|n| n.node_type() == NodeType::Element)
         {
             match field_group.tag_name().name() {
                 "field" => {
-                    let fname = field_group.attribute("name").unwrap();
-                    cmp_entry.add_field(fname, field_group.attribute("required").unwrap());
+                    let field_tag = field_group
+                        .attribute("name")
+                        .and_then(|n| dict.fields_by_name.get(n))
+                        .unwrap();
+                    let required = field_group
+                        .attribute("required")
+                        .map(|req| req.eq_ignore_ascii_case("y"))
+                        .unwrap();
+                    component_entry
+                        .component_fields
+                        .insert(*field_tag, required);
                 }
                 "group" => {
                     let grp_name = field_group.attribute("name").unwrap();
-                    let grp_req = field_group.attribute("required").unwrap();
-                    let mut group = Group::new(grp_name);
-                    for group_field in field_group
-                        .children()
-                        .filter(|n| n.node_type() == NodeType::Element && n.has_tag_name("field"))
-                    {
-                        group.add_field(
-                            group_field.attribute("name").unwrap(),
-                            group_field.attribute("required").unwrap(),
-                        );
+                    let grp_req = field_group
+                        .attribute("required")
+                        .map(|req| req.eq_ignore_ascii_case("y"))
+                        .unwrap();
+                    component_entry
+                        .component_group
+                        .insert(grp_name.to_string(), grp_req);
+                    if dict.groups.get(grp_name).is_none() {
+                        let group = create_group(field_group, dict);
+                        dict.groups.insert(grp_name.to_string(), group);
                     }
-                    dict.add_group(grp_name, group);
-                    cmp_entry.add_group(grp_name, grp_req);
                 }
-                _ => {} // Do nothing TODO: Error handling
+                _ => panic!("Unknown tag in xml. Could not process. Aborting."),
             }
         }
-        dict.add_component(comp_name, cmp_entry);
+        dict.components
+            .insert(component_name.to_string(), component_entry);
+    }
+}
+
+fn message_handler(node: Node, dict: &mut DataDict) {
+    for msg_node in node
+        .children()
+        .filter(|n| n.node_type() == NodeType::Element)
+    {
+        let msg_name = msg_node.attribute("name").unwrap();
+        let msg_type = msg_node.attribute("msgtype").unwrap();
+        let msg_cat = msg_node.attribute("msgcat").unwrap();
+        let mut message = Message::new(msg_name, msg_type, msg_cat);
+        for msg_child_node in msg_node
+            .children()
+            .filter(|n| n.node_type() == NodeType::Element)
+        {
+            match msg_child_node.tag_name().name() {
+                "field" => {
+                    let field_tag = msg_child_node
+                        .attribute("name")
+                        .and_then(|n| dict.fields_by_name.get(n))
+                        .unwrap();
+                    let required = msg_child_node
+                        .attribute("required")
+                        .map(|req| req.eq_ignore_ascii_case("y"))
+                        .unwrap();
+                    message.fields.insert(*field_tag, required);
+                }
+                "group" => {
+                    let grp_name = msg_child_node.attribute("name").unwrap();
+                    let required = msg_child_node
+                        .attribute("required")
+                        .map(|req| req.eq_ignore_ascii_case("y"))
+                        .unwrap();
+                    message.groups.insert(grp_name.to_string(), required);
+                    if dict.groups.get(grp_name).is_none() {
+                        let msg_group = create_group(msg_child_node, dict);
+                        dict.groups.insert(grp_name.to_string(), msg_group);
+                    }
+                }
+                "component" => {
+                    let cname = msg_child_node.attribute("name").unwrap();
+                    let required = msg_child_node
+                        .attribute("name")
+                        .map(|req| req.eq_ignore_ascii_case("y"))
+                        .unwrap();
+                    message.components.insert(cname.to_string(), required);
+                }
+                _ => panic!("Unknown xml tag in message section. Aborting."),
+            }
+        }
+        dict.messages.insert(msg_name.to_string(), message);
     }
 }
 
@@ -294,9 +398,14 @@ pub fn create_data_dict(fix_xml: &str) -> DataDict {
         .children()
         .find(|node| node.tag_name().name() == "components")
         .unwrap();
-    component_handler(component_node, &mut dictionary);
+    component_handler(component_node, &mut data_dict);
 
-
+    let message_node = doc
+        .root_element()
+        .children()
+        .find(|node| node.tag_name().name() == "messages")
+        .unwrap();
+    message_handler(message_node, &mut data_dict);
     data_dict
 }
 
