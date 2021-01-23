@@ -5,52 +5,81 @@ use std::fmt;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
+use std::iter::{IntoIterator, Iterator};
 use std::path;
 
 use crate::message::Field;
 use crate::quickfix_errors::*;
 use roxmltree::{Document, Node, NodeType};
+use std::ops::Add;
 
 type FxStr = &'static str;
+type DictResult<T> = std::result::Result<T, NewFixError>;
 
-lazy_static! (
-    // statically load all fix types
-    static ref FIXTYPES: HashSet<FxStr> = [
-            "CHAR",
-            "BOOLEAN",
-            "DATA",
-            "FLOAT",
-            "AMT",
-            "PERCENTAGE",
-            "PRICE",
-            "PRICEOFFSET",
-            "QTY",
-            "INT",
-            "LENGTH",
-            "NUMINGROUP",
-            "SEQNUM",
-            "TAGNUM",
-            "STRING",
-            "COUNTRY",
-            "CURRENCY",
-            "EXCHANGE",
-            "LOCALMKTDATE",
-            "MONTHYEAR",
-            "MULTIPLEVALUESTRING",
-            "UTCDATE",
-            "UTCTIMEONLY",
-            "UTCTIMESTAMP",
-        ]
-        .iter()
-        .cloned()
-        .collect();
-);
+#[derive(Debug)]
+enum FixType {
+    CHAR,
+    BOOLEAN,
+    DATA,
+    FLOAT,
+    AMT,
+    PERCENTAGE,
+    PRICE,
+    PRICEOFFSET,
+    QTY,
+    INT,
+    LENGTH,
+    NUMINGROUP,
+    SEQNUM,
+    TAGNUM,
+    STRING,
+    COUNTRY,
+    CURRENCY,
+    EXCHANGE,
+    LOCALMKTDATE,
+    MONTHYEAR,
+    MULTIPLEVALUESTRING,
+    UTCDATE,
+    UTCTIMEONLY,
+    UTCTIMESTAMP,
+}
+
+impl FixType {
+    fn value_of(value: &str) -> Self {
+        match value {
+            "CHAR" => FixType::CHAR,
+            "BOOLEAN" => FixType::BOOLEAN,
+            "DATA" => FixType::DATA,
+            "FLOAT" => FixType::FLOAT,
+            "AMT" => FixType::AMT,
+            "PERCENTAGE" => FixType::PERCENTAGE,
+            "PRICE" => FixType::PRICE,
+            "PRICEOFFSET" => FixType::PRICEOFFSET,
+            "QTY" => FixType::QTY,
+            "INT" => FixType::INT,
+            "LENGTH" => FixType::LENGTH,
+            "NUMINGROUP" => FixType::NUMINGROUP,
+            "SEQNUM" => FixType::SEQNUM,
+            "TAGNUM" => FixType::TAGNUM,
+            "STRING" => FixType::STRING,
+            "COUNTRY" => FixType::COUNTRY,
+            "CURRENCY" => FixType::CURRENCY,
+            "EXCHANGE" => FixType::EXCHANGE,
+            "LOCALMKTDATE" => FixType::LOCALMKTDATE,
+            "MONTHYEAR" => FixType::MONTHYEAR,
+            "MULTIPLEVALUESTRING" => FixType::MULTIPLEVALUESTRING,
+            "UTCDATE" => FixType::UTCDATE,
+            "UTCTIMEONLY" => FixType::UTCTIMEONLY,
+            "UTCTIMESTAMP" => FixType::UTCTIMESTAMP,
+            _ => panic!("Unknown Fix Type..aborting"),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct DataDict {
     fields_by_tag: HashMap<u32, FieldEntry>,
     fields_by_name: HashMap<String, u32>,
-    components: HashMap<String, Component>,
     groups: HashMap<String, Group>,
     messages: HashMap<String, Message>,
 }
@@ -60,17 +89,33 @@ impl DataDict {
         Self {
             fields_by_tag: HashMap::new(),
             fields_by_name: HashMap::new(),
-            components: HashMap::new(),
             groups: HashMap::new(),
             messages: HashMap::new(),
         }
     }
 
-    pub fn is_tag_valid_for_message(&self, tag: u32, msg_type: &str) -> Result<(), NewFixError> {
+    fn check_valid_tag(&self, field: &Field) -> DictResult<()> {
+        todo!()
+    }
+
+    pub fn check_tag_for_message(&self, tag: u32, msg_type: &str) -> Result<(), NewFixError> {
+        let message = match self.messages.get(msg_type) {
+            Some(m) => m,
+            None => {
+                return Err(NewFixError {
+                    kind: NewFixErrorKind::InvalidMessageType,
+                })
+            }
+        };
+        for (field_tag, _) in message.fields.iter() {
+            if tag == *field_tag {
+                return Ok(());
+            }
+        }
         Ok(())
     }
 
-    pub fn is_tag_value_valid(&self, tag: u32, val: &str) -> Result<(), NewFixError> {
+    pub fn check_tag_valid_value(&self, tag: u32, val: &str) -> Result<(), NewFixError> {
         // returns true or false based on valid/invalid value
         if val.is_empty() {
             return Err(NewFixError {
@@ -99,19 +144,32 @@ impl DataDict {
         }
         Ok(())
     }
+
+    fn check_has_required(&self, msg: &crate::message::Message) -> DictResult<()> {
+        todo!()
+    }
+
+    fn check_tag_without_value(&self, field: &Field) -> DictResult<()> {
+        todo!()
+    }
+
+    fn check_tag_format(&self, field: &Field) -> DictResult<()> {
+        todo!()
+    }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug)]
 struct FieldEntry {
     field_number: u32,
     field_name: String,
-    field_type: FxStr,
+    field_type: FixType,
     field_values: BTreeMap<String, FieldValueEntry>,
 }
 
 impl FieldEntry {
     fn new(field_number: u32, field_name: &str, field_type: &str) -> Self {
-        let ftype: FxStr = *FIXTYPES.get(field_type).unwrap();
+        // let ftype: FxStr = *FIXTYPES.get(field_type).unwrap();
+        let ftype = FixType::value_of(field_type);
         Self {
             field_number,
             field_name: field_name.to_owned(),
@@ -125,7 +183,7 @@ impl FieldEntry {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug)]
 struct FieldValueEntry {
     value: String,
     description: String,
@@ -144,28 +202,17 @@ impl FieldValueEntry {
     }
 }
 
-#[derive(Debug)]
-struct Component {
-    component_name: String,
-    component_fields: HashMap<u32, bool>, // field number to required mapping
-    component_group: HashMap<String, bool>, // component group to required mapping
-}
-
-impl Component {
-    fn new(name: &str) -> Self {
-        Component {
-            component_name: name.to_owned(),
-            component_fields: HashMap::new(),
-            component_group: HashMap::new(),
-        }
-    }
+trait AddFieldAndGroup {
+    fn add_required_field(&mut self, field: u32, required: bool);
+    fn add_required_group(&mut self, group_name: &str, required: bool);
+    fn add_delim(&mut self, delim: u32);
 }
 
 #[derive(Debug)]
 struct Group {
     group_name: String,
+    group_delim: u32,
     group_fields: HashMap<u32, bool>, // field number to required mapping
-    group_components: HashMap<String, bool>, // component name to required mapping
     sub_groups: HashMap<String, bool>, // (sub)group to required mapping
 }
 
@@ -173,9 +220,25 @@ impl Group {
     fn new(name: &str) -> Self {
         Self {
             group_name: name.to_owned(),
+            group_delim: 0,
             group_fields: HashMap::new(),
-            group_components: HashMap::new(),
             sub_groups: HashMap::new(),
+        }
+    }
+}
+
+impl AddFieldAndGroup for Group {
+    fn add_required_field(&mut self, field: u32, required: bool) {
+        self.group_fields.insert(field, required);
+    }
+
+    fn add_required_group(&mut self, group_name: &str, required: bool) {
+        self.sub_groups.insert(group_name.to_string(), required);
+    }
+
+    fn add_delim(&mut self, delim: u32) {
+        if self.group_delim == 0 {
+            self.group_delim = delim;
         }
     }
 }
@@ -185,9 +248,8 @@ struct Message {
     name: String,
     m_type: String,
     category: String,
-    fields: HashMap<u32, bool>,        // field tag to required
-    groups: HashMap<String, bool>,     // group name to required mapping
-    components: HashMap<String, bool>, // component to required mapping
+    fields: HashMap<u32, bool>,    // field tag to required
+    groups: HashMap<String, bool>, // group name to required mapping
 }
 
 impl Message {
@@ -198,9 +260,20 @@ impl Message {
             category: msg_cat.to_owned(),
             fields: HashMap::new(),
             groups: HashMap::new(),
-            components: HashMap::new(),
         }
     }
+}
+
+impl AddFieldAndGroup for Message {
+    fn add_required_field(&mut self, field: u32, required: bool) {
+        self.fields.insert(field, required);
+    }
+
+    fn add_required_group(&mut self, group_name: &str, required: bool) {
+        self.groups.insert(group_name.to_string(), required);
+    }
+
+    fn add_delim(&mut self, delim: u32) {}
 }
 
 fn update_fields(field_node: Node, dict: &mut DataDict) {
@@ -222,14 +295,49 @@ fn update_fields(field_node: Node, dict: &mut DataDict) {
             f_entry
                 .field_values
                 .insert(valid_value.to_string(), fvalue_entry);
-            // f_entry.set_valid_value(fvalue_entry);
         }
         dict.fields_by_tag.insert(fnum, f_entry);
         dict.fields_by_name.insert(fname.to_string(), fnum);
     }
 }
 
-fn create_group(group_node: Node, dict: &mut DataDict) -> Group {
+fn add_component<T: AddFieldAndGroup>(
+    comp_node: &Node,
+    comp_node_req: bool,
+    field_map: &mut T,
+    dict: &mut DataDict,
+) {
+    for child_node in comp_node
+        .children()
+        .filter(|n| n.node_type() == NodeType::Element)
+    {
+        match child_node.tag_name().name() {
+            "field" => {
+                // field details are in struct.
+                let field_tag = get_field_tag(child_node, dict);
+                let required = get_required_attribute(child_node);
+                // if comp is required and components field is required then add as required
+                // otherwise optional
+                field_map.add_required_field(field_tag, required && comp_node_req);
+                field_map.add_delim(field_tag)
+            }
+            "group" => {
+                let grp_name = get_name_attribute(child_node);
+                let grp_req = get_required_attribute(child_node);
+                let group_field_tag = dict.fields_by_name.get(grp_name).unwrap();
+                field_map.add_required_field(*group_field_tag, grp_req && comp_node_req);
+                field_map.add_required_group(grp_name, grp_req && comp_node_req);
+                if dict.groups.get(grp_name).is_none() {
+                    let sub_group = add_group(child_node, dict);
+                    dict.groups.insert(grp_name.to_string(), sub_group);
+                }
+            }
+            _ => panic!("Invalid xml tag in component"),
+        }
+    }
+}
+
+fn add_group(group_node: Node, dict: &mut DataDict) -> Group {
     // create group, subgroup and components entry and return
     let group_name = group_node.attribute("name").unwrap();
     let mut group = Group::new(group_name);
@@ -239,37 +347,25 @@ fn create_group(group_node: Node, dict: &mut DataDict) -> Group {
     {
         match child_node.tag_name().name() {
             "field" => {
-                let field_tag = child_node
-                    .attribute("name")
-                    .and_then(|n| dict.fields_by_name.get(n))
-                    .unwrap();
-                let required = child_node
-                    .attribute("required")
-                    .map(|req| req.eq_ignore_ascii_case("y"))
-                    .unwrap();
-                group.group_fields.insert(*field_tag, required);
+                let field_tag = get_field_tag(child_node, dict);
+                let required = get_required_attribute(child_node);
+                group.group_fields.insert(field_tag, required);
+                if group.group_delim == 0 {
+                    group.group_delim = field_tag;
+                }
             }
             "component" => {
-                let component_name = child_node.attribute("name").unwrap();
-                let required = child_node
-                    .attribute("required")
-                    .map(|req| req.eq_ignore_ascii_case("y"))
-                    .unwrap();
-                group
-                    .group_components
-                    .insert(component_name.to_string(), required);
+                let required = get_required_attribute(child_node);
+                add_component(&child_node, required, &mut group, dict);
             }
             "group" => {
-                let sub_group_name = child_node.attribute("name").unwrap();
-                let required = child_node
-                    .attribute("required")
-                    .map(|req| req.eq_ignore_ascii_case("y"))
-                    .unwrap();
+                let sub_group_name = get_name_attribute(child_node);
+                let required = get_required_attribute(child_node);
                 group
                     .sub_groups
                     .insert(sub_group_name.to_string(), required);
                 if dict.groups.get(sub_group_name).is_none() {
-                    let sub_group = create_group(child_node, dict);
+                    let sub_group = add_group(child_node, dict);
                     dict.groups.insert(sub_group_name.to_string(), sub_group);
                 }
             }
@@ -279,54 +375,25 @@ fn create_group(group_node: Node, dict: &mut DataDict) -> Group {
     group
 }
 
-fn component_handler(component_node: Node, dict: &mut DataDict) {
-    for node in component_node
-        .children()
-        .filter(|n| n.node_type() == NodeType::Element)
-    {
-        let component_name = node.attribute("name").unwrap();
-        let mut component_entry = Component::new(component_name);
-        for field_group in node
-            .children()
-            .filter(|n| n.node_type() == NodeType::Element)
-        {
-            match field_group.tag_name().name() {
-                "field" => {
-                    let field_tag = field_group
-                        .attribute("name")
-                        .and_then(|n| dict.fields_by_name.get(n))
-                        .unwrap();
-                    let required = field_group
-                        .attribute("required")
-                        .map(|req| req.eq_ignore_ascii_case("y"))
-                        .unwrap();
-                    component_entry
-                        .component_fields
-                        .insert(*field_tag, required);
-                }
-                "group" => {
-                    let grp_name = field_group.attribute("name").unwrap();
-                    let grp_req = field_group
-                        .attribute("required")
-                        .map(|req| req.eq_ignore_ascii_case("y"))
-                        .unwrap();
-                    component_entry
-                        .component_group
-                        .insert(grp_name.to_string(), grp_req);
-                    if dict.groups.get(grp_name).is_none() {
-                        let group = create_group(field_group, dict);
-                        dict.groups.insert(grp_name.to_string(), group);
-                    }
-                }
-                _ => panic!("Unknown tag in xml. Could not process. Aborting."),
-            }
-        }
-        dict.components
-            .insert(component_name.to_string(), component_entry);
-    }
+fn get_name_attribute<'a>(node: Node<'a, '_>) -> &'a str {
+    node.attribute("name").unwrap()
 }
 
-fn message_handler(node: Node, dict: &mut DataDict) {
+fn get_required_attribute(node: Node) -> bool {
+    node.attribute("required")
+        .map(|req| req.eq_ignore_ascii_case("y"))
+        .unwrap()
+}
+
+fn get_field_tag(node: Node, dict: &DataDict) -> u32 {
+    let field_tag = node
+        .attribute("name")
+        .and_then(|n| dict.fields_by_name.get(n))
+        .unwrap();
+    *field_tag
+}
+
+fn message_handler(node: Node, dict: &mut DataDict, components: &HashMap<&str, Node>) {
     for msg_node in node
         .children()
         .filter(|n| n.node_type() == NodeType::Element)
@@ -341,40 +408,30 @@ fn message_handler(node: Node, dict: &mut DataDict) {
         {
             match msg_child_node.tag_name().name() {
                 "field" => {
-                    let field_tag = msg_child_node
-                        .attribute("name")
-                        .and_then(|n| dict.fields_by_name.get(n))
-                        .unwrap();
-                    let required = msg_child_node
-                        .attribute("required")
-                        .map(|req| req.eq_ignore_ascii_case("y"))
-                        .unwrap();
-                    message.fields.insert(*field_tag, required);
+                    let field_tag = get_field_tag(msg_child_node, dict);
+                    let required = get_required_attribute(msg_child_node);
+                    message.fields.insert(field_tag, required);
                 }
                 "group" => {
-                    let grp_name = msg_child_node.attribute("name").unwrap();
-                    let required = msg_child_node
-                        .attribute("required")
-                        .map(|req| req.eq_ignore_ascii_case("y"))
-                        .unwrap();
+                    let grp_name = get_name_attribute(msg_child_node);
+                    let required = get_required_attribute(msg_child_node);
                     message.groups.insert(grp_name.to_string(), required);
                     if dict.groups.get(grp_name).is_none() {
-                        let msg_group = create_group(msg_child_node, dict);
+                        let msg_group = add_group(msg_child_node, dict);
                         dict.groups.insert(grp_name.to_string(), msg_group);
                     }
                 }
                 "component" => {
-                    let cname = msg_child_node.attribute("name").unwrap();
-                    let required = msg_child_node
-                        .attribute("name")
-                        .map(|req| req.eq_ignore_ascii_case("y"))
-                        .unwrap();
-                    message.components.insert(cname.to_string(), required);
+                    let cname = get_name_attribute(msg_child_node);
+                    let required = get_required_attribute(msg_child_node);
+                    let component = components.get(cname).unwrap();
+                    // message.components.insert(cname.to_string(), required);
+                    add_component(component, required, &mut message, dict);
                 }
                 _ => panic!("Unknown xml tag in message section. Aborting."),
             }
         }
-        dict.messages.insert(msg_name.to_string(), message);
+        dict.messages.insert(msg_type.to_string(), message);
     }
 }
 
@@ -398,14 +455,23 @@ pub fn create_data_dict(fix_xml: &str) -> DataDict {
         .children()
         .find(|node| node.tag_name().name() == "components")
         .unwrap();
-    component_handler(component_node, &mut data_dict);
+    let mut component_map: HashMap<&str, Node> = HashMap::new();
+    for cnode in component_node
+        .children()
+        .filter(|n| n.node_type() == NodeType::Element)
+    {
+        let cmp_name = get_name_attribute(cnode);
+        component_map.insert(cmp_name, cnode);
+    }
+
+    // component_handler(component_node, &mut data_dict);
 
     let message_node = doc
         .root_element()
         .children()
         .find(|node| node.tag_name().name() == "messages")
         .unwrap();
-    message_handler(message_node, &mut data_dict);
+    message_handler(message_node, &mut data_dict, &component_map);
     data_dict
 }
 
@@ -416,6 +482,10 @@ mod dict_test {
     #[test]
     fn test_it_works() {
         let data_dict = create_data_dict("src/fix43/FIX43.xml");
-        println!("dictionary fields: {:?}", data_dict);
+        // println!("\ndictionary fields by name: {:?}", data_dict.fields_by_name);
+        // println!("\ndictionary fields by tag: {:?}", data_dict.fields_by_tag);
+        // println!("\ndictionary components: {:?}", data_dict.components);
+        // println!("\ndictionary groups: {:?}", data_dict.groups);
+        println!("\ndictionary messages {:?}", data_dict.messages);
     }
 }

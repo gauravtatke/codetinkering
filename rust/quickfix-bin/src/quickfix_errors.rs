@@ -69,7 +69,7 @@ pub enum NewFixErrorKind {
     InvalidMessageType,
     ParseError(FixTypeFieldParseErrorKind),
     InvalidBodyLength,
-    InvalidCheckcksum,
+    InvalidChecksum,
 }
 
 impl fmt::Display for NewFixError {

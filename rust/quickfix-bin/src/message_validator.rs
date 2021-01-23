@@ -18,12 +18,12 @@ pub fn validate_tag(msg: &str, dict: &DataDict) -> Result<(), NewFixError> {
             }
         };
         let val = tag_and_val[1];
-        let result = dict.is_tag_value_valid(tag, val);
+        let result = dict.check_tag_valid_value(tag, val);
         if result.is_err() {
             return result;
         }
 
-        match dict.is_tag_valid_for_message(tag, msg_type) {
+        match dict.check_tag_for_message(tag, msg_type) {
             Ok(v) => Ok(()),
             Err(e) => Err(e),
         };
@@ -46,7 +46,7 @@ pub fn validate_checksum(message: &str) -> Result<(), NewFixError> {
     let check_str = format!("{:0>3}", calc_checksum % 256);
     if check_str != recvd_checksum_field[1] {
         return Err(NewFixError {
-            kind: NewFixErrorKind::InvalidCheckcksum,
+            kind: NewFixErrorKind::InvalidChecksum,
         });
     }
     Ok(())
