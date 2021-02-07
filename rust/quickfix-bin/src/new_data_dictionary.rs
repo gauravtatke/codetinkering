@@ -11,12 +11,12 @@ use std::path;
 use crate::message::Field;
 use crate::quickfix_errors::*;
 use roxmltree::{Document, Node, NodeType};
-use std::ops::Add;
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 
 type FxStr = &'static str;
-type DictResult<T> = std::result::Result<T, NewFixError>;
+type DictResult<T> = std::result::Result<T, SessionLevelRejectErr>;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum FixType {
     CHAR,
     BOOLEAN,
@@ -85,7 +85,7 @@ pub struct DataDict {
 }
 
 impl DataDict {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             fields_by_tag: HashMap::new(),
             fields_by_name: HashMap::new(),
@@ -94,53 +94,66 @@ impl DataDict {
         }
     }
 
-    fn check_valid_tag(&self, field: &Field) -> DictResult<()> {
-        todo!()
+    pub fn with_xml(xml_file: &str) -> Self {
+        create_data_dict(xml_file)
     }
 
-    pub fn check_tag_for_message(&self, tag: u32, msg_type: &str) -> Result<(), NewFixError> {
-        let message = match self.messages.get(msg_type) {
-            Some(m) => m,
-            None => {
-                return Err(NewFixError {
-                    kind: NewFixErrorKind::InvalidMessageType,
-                })
-            }
+    fn get_field_type(&self, field: &Field) -> FixType {
+        let field_entry = self.fields_by_tag.get(&field.get_tag()).unwrap();
+        return field_entry.field_type;
+    }
+
+    fn check_valid_tag(&self, field: &Field) -> DictResult<&FieldEntry> {
+        // checks if the tag is valid according to data dictionary
+        let tag = field.get_tag();
+        self.fields_by_tag
+            .get(&tag)
+            .ok_or_else(|| SessionLevelRejectErr::invalid_tag_err())
+    }
+
+    fn check_msg_type(&self, msg_type: &str) -> DictResult<&Message> {
+        // checks that message type is valid according to data dictionary
+        self.messages
+            .get(msg_type)
+            .ok_or_else(|| SessionLevelRejectErr::invalid_msg_type_err())
+    }
+
+    pub fn check_tag_for_message(&self, tag: u32, msg_type: &str) -> Result<(), SessionLevelRejectErr> {
+        let message = match self.check_msg_type(msg_type) {
+            Ok(m) => m,
+            Err(e) => return Err(e),
         };
-        for (field_tag, _) in message.fields.iter() {
-            if tag == *field_tag {
-                return Ok(());
+        match message.fields.get(&tag) {
+            Some(_) => return Ok(()),
+            None => {
+                for (grp_name, _) in message.groups.iter() {
+                    if check_tag_in_group(tag, grp_name, self) {
+                        return Ok(());
+                    }
+                }
             }
         }
-        Ok(())
+        Err(SessionLevelRejectErr::undefined_tag_err())
     }
 
-    pub fn check_tag_valid_value(&self, tag: u32, val: &str) -> Result<(), NewFixError> {
+    pub fn check_tag_valid_value(&self, field: &Field) -> Result<(), SessionLevelRejectErr> {
         // returns true or false based on valid/invalid value
-        if val.is_empty() {
-            return Err(NewFixError {
-                kind: NewFixErrorKind::TagSpecifiedWithoutValue,
-            });
+        let value = field.get_str().unwrap();
+        if value.is_empty() {
+            return Err(SessionLevelRejectErr::tag_without_value_err());
         }
 
-        let field_entry = match self.fields_by_tag.get(&tag) {
-            // if there is not field entry then its an error
-            Some(f) => f,
-            None => {
-                return Err(NewFixError {
-                    kind: NewFixErrorKind::UndefinedTag,
-                })
-            }
+        let field_entry = match self.check_valid_tag(field) {
+            Ok(f) => f,
+            Err(e) => return Err(e),
         };
 
         if field_entry.field_values.is_empty() {
             // empty field values means its free value tag
-            // TODO: verify that value can be parsed into required type
-            return Ok(());
-        } else if field_entry.field_values.get(val).is_none() {
-            return Err(NewFixError {
-                kind: NewFixErrorKind::ValueOutOfRange,
-            });
+            return self.check_tag_format(field);
+        } else if field_entry.field_values.get(&value).is_none() {
+            // no need to check format here. it will result in error regardless
+            return Err(SessionLevelRejectErr::value_out_of_range_err());
         }
         Ok(())
     }
@@ -150,11 +163,78 @@ impl DataDict {
     }
 
     fn check_tag_without_value(&self, field: &Field) -> DictResult<()> {
-        todo!()
+        todo!("already implemented in check_tag_valid_value")
     }
 
     fn check_tag_format(&self, field: &Field) -> DictResult<()> {
-        todo!()
+        let expected_format = self.get_field_type(field);
+        let result = match expected_format {
+            FixType::FLOAT
+            | FixType::AMT
+            | FixType::PERCENTAGE
+            | FixType::PRICEOFFSET
+            | FixType::PRICE
+            | FixType::QTY => field.get_float().map(|_| ()),
+            FixType::INT
+            | FixType::LENGTH
+            | FixType::NUMINGROUP
+            | FixType::SEQNUM
+            | FixType::TAGNUM => field.get_int().map(|_| ()),
+            FixType::CHAR => field.get_char().map(|_| ()),
+            FixType::BOOLEAN => field.get_bool().map(|_| ()),
+            FixType::DATA
+            | FixType::STRING
+            | FixType::CURRENCY
+            | FixType::COUNTRY
+            | FixType::EXCHANGE
+            | FixType::MULTIPLEVALUESTRING => field.get_str().map(|_| ()),
+            FixType::LOCALMKTDATE | FixType::UTCDATE => {
+                // todo!("implement time related parsing using other crates")
+                match field.get_str() {
+                    Ok(s) => {
+                        if NaiveDate::parse_from_str(&s, "%Y%m%d").is_err() {
+                            return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                        }
+                    },
+                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                }
+                Ok(())
+            }
+            FixType::MONTHYEAR => {
+                match field.get_str() {
+                    Ok(s) => {
+                        if NaiveDate::parse_from_str(&s, "%Y%m").is_err() {
+                            return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                        }
+                    },
+                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                }
+                Ok(())
+            }
+            FixType::UTCTIMEONLY => {
+                match field.get_str() {
+                    Ok(s) => {
+                        if NaiveTime::parse_from_str(&s, "%T%.3f").is_err() {
+                            return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                        }
+                    },
+                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                }
+                Ok(())
+            }
+            FixType::UTCTIMESTAMP => {
+                match field.get_str() {
+                    Ok(s) => {
+                        if NaiveDateTime::parse_from_str(&s, "%Y%m%d-%T%.3f").is_err() {
+                            return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                        }
+                    },
+                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                }
+                Ok(())
+            }
+        };
+        return result;
     }
 }
 
@@ -168,7 +248,6 @@ struct FieldEntry {
 
 impl FieldEntry {
     fn new(field_number: u32, field_name: &str, field_type: &str) -> Self {
-        // let ftype: FxStr = *FIXTYPES.get(field_type).unwrap();
         let ftype = FixType::value_of(field_type);
         Self {
             field_number,
@@ -202,7 +281,7 @@ impl FieldValueEntry {
     }
 }
 
-trait AddFieldAndGroup {
+trait FieldAndGroupSetter {
     fn add_required_field(&mut self, field: u32, required: bool);
     fn add_required_group(&mut self, group_name: &str, required: bool);
     fn add_delim(&mut self, delim: u32);
@@ -227,7 +306,27 @@ impl Group {
     }
 }
 
-impl AddFieldAndGroup for Group {
+fn check_tag_in_group(tag: u32, group_name: &str, dict: &DataDict) -> bool {
+    // check if the field is supported by the group or not
+    let group = match dict.groups.get(group_name) {
+        Some(g) => g,
+        None => {
+            eprintln!("Group {} not found in dictionary", group_name);
+            return false;
+        }
+    };
+    if group.group_fields.contains_key(&tag) {
+        return true;
+    }
+    for (group_name, _) in group.sub_groups.iter() {
+        if check_tag_in_group(tag, group_name, dict) {
+            return true;
+        }
+    }
+    return false;
+}
+
+impl FieldAndGroupSetter for Group {
     fn add_required_field(&mut self, field: u32, required: bool) {
         self.group_fields.insert(field, required);
     }
@@ -264,7 +363,7 @@ impl Message {
     }
 }
 
-impl AddFieldAndGroup for Message {
+impl FieldAndGroupSetter for Message {
     fn add_required_field(&mut self, field: u32, required: bool) {
         self.fields.insert(field, required);
     }
@@ -301,7 +400,7 @@ fn update_fields(field_node: Node, dict: &mut DataDict) {
     }
 }
 
-fn add_component<T: AddFieldAndGroup>(
+fn add_component<T: FieldAndGroupSetter>(
     comp_node: &Node,
     comp_node_req: bool,
     field_map: &mut T,
@@ -487,5 +586,9 @@ mod dict_test {
         // println!("\ndictionary components: {:?}", data_dict.components);
         // println!("\ndictionary groups: {:?}", data_dict.groups);
         println!("\ndictionary messages {:?}", data_dict.messages);
+    }
+
+    fn test_date_time_fields() {
+
     }
 }

@@ -79,14 +79,12 @@ impl<T: Into<i64>> From<T> for Int {
 // }
 
 impl FromStr for Int {
-    type Err = FixTypeFieldParseError;
+    type Err = SessionLevelRejectErr;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.parse::<i64>() {
             Ok(i) => Ok(Int::new(i)),
-            Err(_) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotInt,
-            }),
+            Err(e) => Err(SessionLevelRejectErr::parse_err(Some(Box::new(e)))),
         }
     }
 }
@@ -122,14 +120,12 @@ impl<T: Into<f64>> From<T> for Float {
 }
 
 impl FromStr for Float {
-    type Err = FixTypeFieldParseError;
+    type Err = SessionLevelRejectErr;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.parse::<f64>() {
             Ok(f) => Ok(Float::new(f)),
-            Err(_) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotFloat,
-            }),
+            Err(e) => Err(SessionLevelRejectErr::parse_err(Some(Box::new(e)))),
         }
     }
 }
@@ -230,17 +226,13 @@ impl<T: Into<char>> From<T> for Char {
 }
 
 impl FromStr for Char {
-    type Err = FixTypeFieldParseError;
+    type Err = SessionLevelRejectErr;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.parse::<char>() {
             Ok(c) if c.is_ascii() => Ok(Char::new(c)),
-            Ok(_) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotChar,
-            }),
-            Err(_) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotChar,
-            }),
+            Ok(_) => Err(SessionLevelRejectErr::parse_err(None)),
+            Err(e) => Err(SessionLevelRejectErr::parse_err(Some(Box::new(e)))),
         }
     }
 }
@@ -300,7 +292,7 @@ impl<T: Into<bool>> From<T> for Bool {
 }
 
 impl FromStr for Bool {
-    type Err = FixTypeFieldParseError;
+    type Err = SessionLevelRejectErr;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.parse::<char>() {
@@ -310,14 +302,10 @@ impl FromStr for Bool {
                 } else if ch.eq_ignore_ascii_case(&'n') {
                     Ok(Bool::new(false))
                 } else {
-                    Err(FixTypeFieldParseError {
-                        kind: FixTypeFieldParseErrorKind::NotBool,
-                    })
+                    Err(SessionLevelRejectErr::parse_err(None))
                 }
             }
-            Err(_) => Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotBool,
-            }),
+            Err(e) => Err(SessionLevelRejectErr::parse_err(Some(Box::new(e)))),
         }
     }
 }

@@ -28,23 +28,27 @@ impl Field {
         }
     }
 
-    fn get_int(&self) -> Result<Int, FixTypeFieldParseError> {
+    pub fn get_tag(&self) -> u32 {
+        self.tag
+    }
+
+    pub fn get_int(&self) -> Result<Int, SessionLevelRejectErr> {
         self.str_value.parse::<Int>()
     }
 
-    fn get_float(&self) -> Result<Float, FixTypeFieldParseError> {
+    pub fn get_float(&self) -> Result<Float, SessionLevelRejectErr> {
         self.str_value.parse::<Float>()
     }
 
-    fn get_char(&self) -> Result<Char, FixTypeFieldParseError> {
+    pub fn get_char(&self) -> Result<Char, SessionLevelRejectErr> {
         self.str_value.parse::<Char>()
     }
 
-    fn get_bool(&self) -> Result<Bool, FixTypeFieldParseError> {
+    pub fn get_bool(&self) -> Result<Bool, SessionLevelRejectErr> {
         self.str_value.parse::<Bool>()
     }
 
-    fn get_str(&self) -> Result<String, FixTypeFieldParseError> {
+    pub fn get_str(&self) -> Result<String, SessionLevelRejectErr> {
         Ok(self.str_value.to_owned())
     }
 }
@@ -67,14 +71,11 @@ pub trait MessageBuilder {
         self.add_field(tag, value.into())
     }
 
-    fn get_int(&self, tag: Tag) -> Result<Int, FixTypeFieldParseError> {
+    fn get_int(&self, tag: Tag) -> Result<Int, SessionLevelRejectErr> {
         // TODO: Change the return error type
-        if let Some(field) = self.get_field(tag) {
-            field.get_int()
-        } else {
-            Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotInt,
-            })
+        match self.get_field(tag).ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err()) {
+            Ok(field) => field.get_int(),
+            Err(e) => Err(e)
         }
     }
 
@@ -82,14 +83,11 @@ pub trait MessageBuilder {
         self.add_field(tag, value.into());
     }
 
-    fn get_float(&self, tag: Tag) -> Result<Float, FixTypeFieldParseError> {
+    fn get_float(&self, tag: Tag) -> Result<Float, SessionLevelRejectErr> {
         // TODO: Change the return error type
-        if let Some(field) = self.get_field(tag) {
-            field.get_float()
-        } else {
-            Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotFloat,
-            })
+        match self.get_field(tag).ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err()) {
+            Ok(field) => field.get_float(),
+            Err(e) => Err(e)
         }
     }
 
@@ -97,14 +95,11 @@ pub trait MessageBuilder {
         self.add_field(tag, value.into());
     }
 
-    fn get_char(&self, tag: Tag) -> Result<Char, FixTypeFieldParseError> {
+    fn get_char(&self, tag: Tag) -> Result<Char, SessionLevelRejectErr> {
         // TODO: Change the return error type
-        if let Some(field) = self.get_field(tag) {
-            field.get_char()
-        } else {
-            Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotChar,
-            })
+        match self.get_field(tag).ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err()) {
+            Ok(field) => field.get_char(),
+            Err(e) => Err(e)
         }
     }
 
@@ -112,14 +107,11 @@ pub trait MessageBuilder {
         self.add_field(tag, value.into());
     }
 
-    fn get_bool(&self, tag: Tag) -> Result<Bool, FixTypeFieldParseError> {
+    fn get_bool(&self, tag: Tag) -> Result<Bool, SessionLevelRejectErr> {
         // TODO: Change the return error type
-        if let Some(field) = self.get_field(tag) {
-            field.get_bool()
-        } else {
-            Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotInt,
-            })
+        match self.get_field(tag).ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err()) {
+            Ok(field) => field.get_bool(),
+            Err(e) => Err(e)
         }
     }
 
@@ -127,14 +119,11 @@ pub trait MessageBuilder {
         self.add_field(tag, value);
     }
 
-    fn get_string(&self, tag: Tag) -> Result<String, FixTypeFieldParseError> {
+    fn get_string(&self, tag: Tag) -> Result<String, SessionLevelRejectErr> {
         // TODO: Change the return error type
-        if let Some(field) = self.get_field(tag) {
-            field.get_str()
-        } else {
-            Err(FixTypeFieldParseError {
-                kind: FixTypeFieldParseErrorKind::NotString,
-            })
+        match self.get_field(tag).ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err()) {
+            Ok(field) => field.get_str(),
+            Err(e) => Err(e)
         }
     }
 

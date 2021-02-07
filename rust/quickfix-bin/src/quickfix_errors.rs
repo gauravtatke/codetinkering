@@ -1,37 +1,6 @@
 use std::error::Error;
 use std::fmt::{self, Formatter};
 
-#[derive(Debug)]
-pub struct FixTypeFieldParseError {
-    pub kind: FixTypeFieldParseErrorKind,
-}
-
-#[derive(Debug)]
-pub enum FixTypeFieldParseErrorKind {
-    NotInt,
-    NotFloat,
-    NotBool,
-    NotString,
-    NotChar,
-}
-
-impl fmt::Display for FixTypeFieldParseError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "Cannot convert to FixField")
-    }
-}
-
-impl Error for FixTypeFieldParseError {
-    fn description(&self) -> &str {
-        match self.kind {
-            FixTypeFieldParseErrorKind::NotInt => "Cannot parse data into Int",
-            FixTypeFieldParseErrorKind::NotFloat => "Cannot parse data into Float",
-            FixTypeFieldParseErrorKind::NotBool => "Cannot parse data into Bool",
-            FixTypeFieldParseErrorKind::NotChar => "Cannot parse data into Char",
-            FixTypeFieldParseErrorKind::NotString => "Cannot parse data into valid UTF8 String",
-        }
-    }
-}
 
 #[derive(Debug)]
 pub struct FieldNotPresentError;
@@ -49,12 +18,120 @@ impl Error for FieldNotPresentError {
 }
 
 #[derive(Debug)]
-pub struct NewFixError {
-    pub kind: NewFixErrorKind,
+pub struct SessionLevelRejectErr {
+    pub kind: SessionLevelRejectReason,
+    pub source: Option<Box<dyn Error>>
+}
+
+impl SessionLevelRejectErr {
+    pub fn invalid_value_for_tag_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::InvalidValueForTag,
+            source: None
+        }
+    }
+
+    pub fn invalid_tag_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::InvalidTag,
+            source: None
+        }
+    }
+
+    pub fn required_tag_missing_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::RequiredTagMissing,
+            source: None
+        }
+    }
+
+    pub fn undefined_tag_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::UndefinedTag,
+            source: None
+        }
+    }
+
+    pub fn tag_without_value_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::TagSpecifiedWithoutValue,
+            source: None
+        }
+    }
+
+    pub fn value_out_of_range_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::ValueOutOfRange,
+            source: None
+        }
+    }
+
+    pub fn incorrect_data_format_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::IncorrectDataFormat,
+            source: None
+        }
+    }
+
+    pub fn decryption_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::DecryptionProblem,
+            source: None
+        }
+    }
+
+    pub fn signature_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::SignatureProblem,
+            source: None
+        }
+    }
+
+    pub fn comp_id_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::CompIdProblem,
+            source: None
+        }
+    }
+
+    pub fn sending_time_accuracy_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::SendingTimeAccuracyProblem,
+            source: None
+        }
+    }
+
+    pub fn invalid_msg_type_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::InvalidMessageType,
+            source: None
+        }
+    }
+
+    pub fn invalid_body_len_err() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::InvalidBodyLength,
+            source: None
+        }
+    }
+
+    pub fn invalid_checksum() -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::InvalidChecksum,
+            source: None
+        }
+    }
+
+    pub fn parse_err(err: Option<Box<dyn Error>>) -> Self {
+        SessionLevelRejectErr {
+            kind: SessionLevelRejectReason::ParseError,
+            source: err
+        }
+    }
 }
 
 #[derive(Debug)]
-pub enum NewFixErrorKind {
+pub enum SessionLevelRejectReason {
     InvalidValueForTag,
     InvalidTag,
     RequiredTagMissing,
@@ -67,19 +144,22 @@ pub enum NewFixErrorKind {
     CompIdProblem,
     SendingTimeAccuracyProblem,
     InvalidMessageType,
-    ParseError(FixTypeFieldParseErrorKind),
+    ParseError,
     InvalidBodyLength,
     InvalidChecksum,
 }
 
-impl fmt::Display for NewFixError {
+impl fmt::Display for SessionLevelRejectErr {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "Fix Error {:?}", self.kind)
     }
 }
 
-impl Error for NewFixError {
+impl Error for SessionLevelRejectErr {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        Some(self)
+        if self.source.is_some() {
+            return self.source.as_deref();
+        }
+        return None
     }
 }
