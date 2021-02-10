@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fmt::{self, Formatter};
 
-
 #[derive(Debug)]
 pub struct FieldNotPresentError;
 
@@ -20,112 +19,112 @@ impl Error for FieldNotPresentError {
 #[derive(Debug)]
 pub struct SessionLevelRejectErr {
     pub kind: SessionLevelRejectReason,
-    pub source: Option<Box<dyn Error>>
+    pub source: Option<Box<dyn Error>>,
 }
 
 impl SessionLevelRejectErr {
     pub fn invalid_value_for_tag_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::InvalidValueForTag,
-            source: None
+            source: None,
         }
     }
 
     pub fn invalid_tag_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::InvalidTag,
-            source: None
+            source: None,
         }
     }
 
     pub fn required_tag_missing_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::RequiredTagMissing,
-            source: None
+            source: None,
         }
     }
 
     pub fn undefined_tag_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::UndefinedTag,
-            source: None
+            source: None,
         }
     }
 
     pub fn tag_without_value_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::TagSpecifiedWithoutValue,
-            source: None
+            source: None,
         }
     }
 
     pub fn value_out_of_range_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::ValueOutOfRange,
-            source: None
+            source: None,
         }
     }
 
     pub fn incorrect_data_format_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::IncorrectDataFormat,
-            source: None
+            source: None,
         }
     }
 
     pub fn decryption_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::DecryptionProblem,
-            source: None
+            source: None,
         }
     }
 
     pub fn signature_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::SignatureProblem,
-            source: None
+            source: None,
         }
     }
 
     pub fn comp_id_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::CompIdProblem,
-            source: None
+            source: None,
         }
     }
 
     pub fn sending_time_accuracy_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::SendingTimeAccuracyProblem,
-            source: None
+            source: None,
         }
     }
 
     pub fn invalid_msg_type_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::InvalidMessageType,
-            source: None
+            source: None,
         }
     }
 
     pub fn invalid_body_len_err() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::InvalidBodyLength,
-            source: None
+            source: None,
         }
     }
 
     pub fn invalid_checksum() -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::InvalidChecksum,
-            source: None
+            source: None,
         }
     }
 
     pub fn parse_err(err: Option<Box<dyn Error>>) -> Self {
         SessionLevelRejectErr {
             kind: SessionLevelRejectReason::ParseError,
-            source: err
+            source: err,
         }
     }
 }
@@ -160,6 +159,6 @@ impl Error for SessionLevelRejectErr {
         if self.source.is_some() {
             return self.source.as_deref();
         }
-        return None
+        return None;
     }
 }

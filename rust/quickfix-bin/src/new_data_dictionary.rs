@@ -10,8 +10,8 @@ use std::path;
 
 use crate::message::Field;
 use crate::quickfix_errors::*;
-use roxmltree::{Document, Node, NodeType};
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
+use roxmltree::{Document, Node, NodeType};
 
 type FxStr = &'static str;
 type DictResult<T> = std::result::Result<T, SessionLevelRejectErr>;
@@ -78,6 +78,9 @@ impl FixType {
 
 #[derive(Debug)]
 pub struct DataDict {
+    begin_string: String,
+    header: Header,
+    trailer: Trailer,
     fields_by_tag: HashMap<u32, FieldEntry>,
     fields_by_name: HashMap<String, u32>,
     groups: HashMap<String, Group>,
@@ -87,6 +90,9 @@ pub struct DataDict {
 impl DataDict {
     fn new() -> Self {
         Self {
+            begin_string: String::new(),
+            header: Header::new(),
+            trailer: Trailer::new(),
             fields_by_tag: HashMap::new(),
             fields_by_name: HashMap::new(),
             groups: HashMap::new(),
@@ -118,7 +124,11 @@ impl DataDict {
             .ok_or_else(|| SessionLevelRejectErr::invalid_msg_type_err())
     }
 
-    pub fn check_tag_for_message(&self, tag: u32, msg_type: &str) -> Result<(), SessionLevelRejectErr> {
+    pub fn check_tag_for_message(
+        &self,
+        tag: u32,
+        msg_type: &str,
+    ) -> Result<(), SessionLevelRejectErr> {
         let message = match self.check_msg_type(msg_type) {
             Ok(m) => m,
             Err(e) => return Err(e),
@@ -193,10 +203,10 @@ impl DataDict {
                 match field.get_str() {
                     Ok(s) => {
                         if NaiveDate::parse_from_str(&s, "%Y%m%d").is_err() {
-                            return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                            return Err(SessionLevelRejectErr::incorrect_data_format_err());
                         }
-                    },
-                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                    }
+                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err()),
                 }
                 Ok(())
             }
@@ -204,10 +214,10 @@ impl DataDict {
                 match field.get_str() {
                     Ok(s) => {
                         if NaiveDate::parse_from_str(&s, "%Y%m").is_err() {
-                            return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                            return Err(SessionLevelRejectErr::incorrect_data_format_err());
                         }
-                    },
-                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                    }
+                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err()),
                 }
                 Ok(())
             }
@@ -215,10 +225,10 @@ impl DataDict {
                 match field.get_str() {
                     Ok(s) => {
                         if NaiveTime::parse_from_str(&s, "%T%.3f").is_err() {
-                            return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                            return Err(SessionLevelRejectErr::incorrect_data_format_err());
                         }
-                    },
-                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                    }
+                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err()),
                 }
                 Ok(())
             }
@@ -226,10 +236,10 @@ impl DataDict {
                 match field.get_str() {
                     Ok(s) => {
                         if NaiveDateTime::parse_from_str(&s, "%Y%m%d-%T%.3f").is_err() {
-                            return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                            return Err(SessionLevelRejectErr::incorrect_data_format_err());
                         }
-                    },
-                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err())
+                    }
+                    Err(_) => return Err(SessionLevelRejectErr::incorrect_data_format_err()),
                 }
                 Ok(())
             }
@@ -302,6 +312,34 @@ impl Group {
             group_delim: 0,
             group_fields: HashMap::new(),
             sub_groups: HashMap::new(),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Header {
+    header_field: HashMap<u32, bool>,
+    header_groups: HashMap<String, bool>,
+}
+
+impl Header {
+    fn new() -> Self {
+        Self {
+            header_field: HashMap::new(),
+            header_groups: HashMap::new(),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Trailer {
+    trailer_field: HashMap<u32, bool>,
+}
+
+impl Trailer {
+    fn new() -> Self {
+        Self {
+            trailer_field: HashMap::new(),
         }
     }
 }
@@ -492,7 +530,7 @@ fn get_field_tag(node: Node, dict: &DataDict) -> u32 {
     *field_tag
 }
 
-fn message_handler(node: Node, dict: &mut DataDict, components: &HashMap<&str, Node>) {
+fn add_messages(node: Node, dict: &mut DataDict, components: &HashMap<&str, Node>) {
     for msg_node in node
         .children()
         .filter(|n| n.node_type() == NodeType::Element)
@@ -534,12 +572,60 @@ fn message_handler(node: Node, dict: &mut DataDict, components: &HashMap<&str, N
     }
 }
 
+fn add_header(header_node: Node, dict: &mut DataDict) {
+    for node in header_node
+        .children()
+        .filter(|n| n.node_type() == NodeType::Element)
+    {
+        match node.tag_name().name() {
+            "field" => {
+                let field_tag = get_field_tag(node, dict);
+                let required = get_required_attribute(node);
+                dict.header.header_field.insert(field_tag, required);
+            }
+            "group" => {
+                let grp_name = get_name_attribute(node);
+                let required = get_required_attribute(node);
+                dict.header
+                    .header_groups
+                    .insert(grp_name.to_string(), required);
+                if dict.groups.get(grp_name).is_none() {
+                    let hdr_group = add_group(node, dict);
+                    dict.groups.insert(grp_name.to_string(), hdr_group);
+                }
+            }
+            _ => panic!("Unknown xml tag in header section. Aborting."),
+        }
+    }
+}
+
+fn add_trailer(trailer_node: Node, dict: &mut DataDict) {
+    for node in trailer_node
+        .children()
+        .filter(|n| n.node_type() == NodeType::Element)
+    {
+        match node.tag_name().name() {
+            "field" => {
+                let field_tag = get_field_tag(node, dict);
+                let required = get_required_attribute(node);
+                dict.trailer.trailer_field.insert(field_tag, required);
+            }
+            _ => panic!("Unknown xml tag in header section. Aborting."),
+        }
+    }
+}
+
 pub fn create_data_dict(fix_xml: &str) -> DataDict {
     let mut file_data = String::with_capacity(1024 * 64);
     let mut file = File::open(fix_xml).unwrap();
     file.read_to_string(&mut file_data).unwrap();
     let doc = Document::parse(&file_data).unwrap();
     let mut data_dict = DataDict::new();
+    let dict_type = doc.root_element().attribute("type").unwrap();
+    let major_version = doc.root_element().attribute("major").unwrap();
+    let minor_verion = doc.root_element().attribute("minor").unwrap();
+    let begin_string = format!("{}.{}.{}", dict_type, major_version, minor_verion);
+    data_dict.begin_string = begin_string;
 
     let field_node = doc
         .root_element()
@@ -547,7 +633,6 @@ pub fn create_data_dict(fix_xml: &str) -> DataDict {
         .find(|node| node.tag_name().name() == "fields")
         .unwrap();
     update_fields(field_node, &mut data_dict);
-    // println!("dictionary fields: {:?}", data_dict.fields);
 
     let component_node = doc
         .root_element()
@@ -563,14 +648,26 @@ pub fn create_data_dict(fix_xml: &str) -> DataDict {
         component_map.insert(cmp_name, cnode);
     }
 
-    // component_handler(component_node, &mut data_dict);
+    let header_node = doc
+        .root_element()
+        .children()
+        .find(|node| node.tag_name().name() == "header")
+        .unwrap();
+    add_header(header_node, &mut data_dict);
+
+    let trailer_node = doc
+        .root_element()
+        .children()
+        .find(|node| node.tag_name().name() == "trailer")
+        .unwrap();
+    add_trailer(trailer_node, &mut data_dict);
 
     let message_node = doc
         .root_element()
         .children()
         .find(|node| node.tag_name().name() == "messages")
         .unwrap();
-    message_handler(message_node, &mut data_dict, &component_map);
+    add_messages(message_node, &mut data_dict, &component_map);
     data_dict
 }
 
@@ -585,10 +682,11 @@ mod dict_test {
         // println!("\ndictionary fields by tag: {:?}", data_dict.fields_by_tag);
         // println!("\ndictionary components: {:?}", data_dict.components);
         // println!("\ndictionary groups: {:?}", data_dict.groups);
-        println!("\ndictionary messages {:?}", data_dict.messages);
+        // println!("\ndictionary messages {:?}", data_dict.messages);
+        println!("\ndictionary header {:?}", data_dict.header);
+        println!("\ndictionary begin string {}", data_dict.begin_string);
+        println!("\ndictionary trailer {:?}", data_dict.trailer);
     }
 
-    fn test_date_time_fields() {
-
-    }
+    fn test_date_time_fields() {}
 }
