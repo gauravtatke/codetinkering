@@ -260,7 +260,7 @@ impl Connecter for SocketConnector {
 
 mod validator {
     use super::*;
-    pub fn validate_tag(msg: &str, dict: &DataDictionary) {
+    pub fn validate_tag(msg: &str) {
         // validate that tag is correct according to data_dictionary
         // and value is permissible
         // get the message type

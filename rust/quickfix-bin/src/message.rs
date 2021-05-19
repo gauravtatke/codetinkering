@@ -72,7 +72,6 @@ pub trait MessageBuilder {
     }
 
     fn get_int(&self, tag: Tag) -> Result<Int, SessionLevelRejectErr> {
-        // TODO: Change the return error type
         match self
             .get_field(tag)
             .ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err())
@@ -87,7 +86,6 @@ pub trait MessageBuilder {
     }
 
     fn get_float(&self, tag: Tag) -> Result<Float, SessionLevelRejectErr> {
-        // TODO: Change the return error type
         match self
             .get_field(tag)
             .ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err())
@@ -102,7 +100,6 @@ pub trait MessageBuilder {
     }
 
     fn get_char(&self, tag: Tag) -> Result<Char, SessionLevelRejectErr> {
-        // TODO: Change the return error type
         match self
             .get_field(tag)
             .ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err())
@@ -117,7 +114,6 @@ pub trait MessageBuilder {
     }
 
     fn get_bool(&self, tag: Tag) -> Result<Bool, SessionLevelRejectErr> {
-        // TODO: Change the return error type
         match self
             .get_field(tag)
             .ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err())
@@ -132,7 +128,6 @@ pub trait MessageBuilder {
     }
 
     fn get_string(&self, tag: Tag) -> Result<String, SessionLevelRejectErr> {
-        // TODO: Change the return error type
         match self
             .get_field(tag)
             .ok_or_else(|| SessionLevelRejectErr::required_tag_missing_err())

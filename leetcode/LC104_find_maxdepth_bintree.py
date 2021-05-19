@@ -12,6 +12,9 @@ class TreeNode:
         self.val = val
         self.left = None
         self.right = None
+    
+    def __str__(self):
+        return f'{self.val}'
 
 def maxDepth(root):
     if root is None:
@@ -47,3 +50,29 @@ def maxDepth_BFS(root):
                 dq.append(node.right)
         count += 1
     return count
+
+def max_depth_iter(root: TreeNode) -> int:
+    if root is None:
+        return 0
+    level_list = [[root]]  # each level is new list in the level list
+    for node_list in level_list:
+        child_node_list = []
+        for node in node_list:
+            if node:
+                child_node_list.append(node.left)
+                child_node_list.append(node.right)
+        # one level is completely added to child node
+        if child_node_list:
+            level_list.append(child_node_list)
+    # level list len is the depth
+    print(str(level_list))
+    return len(level_list)
+
+if __name__ == '__main__':
+    root = TreeNode(3)
+    root.left = TreeNode(9)
+    root.right = TreeNode(7)
+    root.right.left = TreeNode(20)
+    root.right.right = TreeNode(11)
+    depth = max_depth_iter(root)
+    print(f'max depth = {depth}')

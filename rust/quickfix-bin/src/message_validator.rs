@@ -1,8 +1,8 @@
 use crate::message::SOH;
-use crate::new_data_dictionary::*;
+use crate::data_dictionary::*;
 use crate::quickfix_errors::*;
 
-pub fn validate_tag(msg: &str, dict: &DataDict) -> Result<(), SessionLevelRejectErr> {
+pub fn validate_tag(msg: &str, dict: &DataDictionary) -> Result<(), SessionLevelRejectErr> {
     // validate that tag is correct according to data_dictionary
     // and value is in permissible range
     // get the message type
@@ -17,7 +17,7 @@ pub fn validate_tag(msg: &str, dict: &DataDict) -> Result<(), SessionLevelReject
         };
 
         match dict.check_tag_for_message(tag, msg_type) {
-            Ok(v) => Ok(()),
+            Ok(_) => Ok(()),
             Err(e) => Err(e),
         };
     }
