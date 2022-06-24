@@ -1,6 +1,0 @@
-[package]
-name = "variable_test"
-version = "0.1.0"
-authors = ["gtatke"]
-
-[dependencies]

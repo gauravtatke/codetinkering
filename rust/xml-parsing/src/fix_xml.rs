@@ -310,6 +310,7 @@ pub fn get_fix(xml_file: &str) -> Fix {
     fix
 }
 
+#[cfg(test)]
 mod fix_xml_test {
     use super::*;
 
