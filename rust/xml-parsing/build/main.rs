@@ -1,8 +1,8 @@
 extern crate yaserde;
 
-mod fix_xml;
+mod parse_xml;
 
-use fix_xml::*;
+use parse_xml::*;
 
 pub fn main() {
     println!("Building fix xml");

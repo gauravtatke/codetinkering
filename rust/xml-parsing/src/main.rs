@@ -1,24 +1,14 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
-// extern crate yaserde;
 extern crate chrono;
 extern crate thiserror;
-// extern crate xml;
 
-mod dictionary;
-mod fix;
-// mod fix_xml;
-// mod macros;
-// mod message;
+mod data_dictionary;
+mod message;
 mod quickfix_errors;
-// mod types;
-// mod strongxmltest;
 
-use dictionary::*;
-use fix::*;
-// use fix_xml::*;
-
-// use strongxmltest::*;
+use data_dictionary::*;
+use message::*;
 
 pub(crate) const FILE_PATH: &str = "config/fix43/FIX43.xml";
 

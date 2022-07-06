@@ -6,7 +6,7 @@ use std::iter::Peekable;
 use std::ops::{Index, IndexMut};
 use std::str::FromStr;
 
-use crate::dictionary::DataDictionary;
+use crate::data_dictionary::DataDictionary;
 use crate::quickfix_errors::SessionRejectError;
 
 /*
