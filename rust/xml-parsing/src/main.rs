@@ -1,18 +1,26 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
 // extern crate yaserde;
-extern crate xml;
+extern crate chrono;
+extern crate thiserror;
+// extern crate xml;
 
-mod fix_xml;
+mod dictionary;
 mod fix;
-mod macros;
+// mod fix_xml;
+// mod macros;
+// mod message;
+mod quickfix_errors;
+// mod types;
 // mod strongxmltest;
 
-use fix_xml::*;
+use dictionary::*;
 use fix::*;
+// use fix_xml::*;
+
 // use strongxmltest::*;
 
-pub (crate) const FILE_PATH: &str = "config/fix43/FIX43.xml";
+pub(crate) const FILE_PATH: &str = "config/fix43/FIX43.xml";
 
 fn main() {
     let mut message = Message::new();
@@ -25,9 +33,8 @@ fn main() {
     let price: Result<u32, String> = message.get_field(44);
     let found_price: f32 = message.get_field(44).unwrap();
     println!("price = {:?}", found_price);
-    
+
     println!("not parsing {:?}", message.get_field::<f32>(35));
     println!("not found {:?}", message.get_field::<u32>(56));
     message.set_field(34, 1);
 }
-
