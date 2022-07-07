@@ -1,4 +1,5 @@
-#![allow(dead_code, unused_imports, unused_variables)]
+#![allow(dead_code, unused_imports, unused_variables, non_camel_case_types)]
+include!(concat!(env!("OUT_DIR"), "/fields.rs"));
 
 extern crate chrono;
 extern crate thiserror;
@@ -27,4 +28,9 @@ fn main() {
     println!("not parsing {:?}", message.get_field::<f32>(35));
     println!("not found {:?}", message.get_field::<u32>(56));
     message.set_field(34, 1);
+    // println!("out dir - {:?}", env!("OUT_DIR"));
+    let price = PriceField::new(55.5f32);
+    let msg_typ = MsgTypeField::new("asdf".to_string());
+    println!("{:?}", price);
+    println!("{:?}", msg_typ);
 }
