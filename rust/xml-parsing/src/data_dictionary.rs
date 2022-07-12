@@ -5,6 +5,7 @@ use std::iter::{FromIterator, IntoIterator, Iterator};
 use std::str::FromStr;
 use std::{convert::Into, fmt, fs::File, path};
 
+use crate::message::{Group, StringField};
 use crate::quickfix_errors::*;
 use indexmap::IndexSet;
 use roxmltree::{Document, Node, NodeType};
@@ -169,6 +170,33 @@ impl DataDictionary {
         file.read_to_string(&mut file_data).unwrap();
         Self::from_str(&file_data).unwrap()
     }
+
+    pub fn is_group(&self, msg_type: &str, fld: &StringField) -> bool {
+        self.groups.get(msg_type).and_then(|val_map| val_map.get(&fld.tag())).is_some()
+    }
+
+    pub fn is_header_field(&self, fld: &StringField) -> bool {
+        self.is_msg_field(HEADER_ID, fld)
+    }
+
+    pub fn get_group(&self, msg_type: &str, fld: &StringField) -> &GroupInfo {
+        self.groups
+            .get(msg_type)
+            .and_then(|gi| gi.get(&fld.tag()))
+            .expect("group not found")
+    }
+
+    pub fn get_ordered_fields(&self) -> Vec<u32> {
+        self.fields.iter().map(|x| *x).collect::<Vec<u32>>()
+    }
+
+    pub fn is_msg_field(&self, msg_type: &str, fld: &StringField) -> bool {
+        self.messsage_fields.get(msg_type).and_then(|val| val.get(&fld.tag())).is_some()
+    }
+
+    pub fn is_trailer_field(&self, fld: &StringField) -> bool {
+        self.is_msg_field(TRAILER_ID, fld)
+    }
 }
 
 impl FromStr for DataDictionary {
@@ -181,9 +209,19 @@ impl FromStr for DataDictionary {
     }
 }
 #[derive(Debug, Default)]
-struct GroupInfo {
+pub struct GroupInfo {
     delimiter: u32,
     group_dd: DataDictionary,
+}
+
+impl GroupInfo {
+    pub fn get_data_dictionary(&self) -> &DataDictionary {
+        &self.group_dd
+    }
+
+    pub fn get_delimiter(&self) -> u32 {
+        self.delimiter
+    }
 }
 
 fn get_attribute<'a>(attr: &str, node: &Node<'a, '_>) -> DResult<&'a str> {

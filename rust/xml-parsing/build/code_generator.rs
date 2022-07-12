@@ -5,7 +5,7 @@ use roxmltree::*;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, collections::HashSet, fs, fs::File, path::PathBuf};
 
-const ENUM_VARIANT_MAX_LEN: usize = 5; // max words in enum variant separated by `_`
+const ENUM_VARIANT_MAX_LEN: usize = 10; // max words in enum variant separated by `_`
 const ENUM_VARIANT_PREFIX: &'static str = "ENVal_";
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -103,23 +103,20 @@ fn get_enum_variant(field_type: &str, enum_val: &str, description: &str) -> Stri
         short_description.insert_str(0, "Val")
     }
 
-    let mut enum_variant = String::new();
-    match field_type {
-        "bool" | "char" | "u32" | "u64" | "i32" | "i64" | "f32" | "f64" => {
-            enum_variant = short_description;
-        }
+    let enum_variant = match field_type {
+        "bool" | "char" | "u32" | "u64" | "i32" | "i64" | "f32" | "f64" => short_description,
         _ => {
             if enum_val.len() >= 2 {
                 // make enum variant compatible with variant naming convention
-                enum_variant = enum_val
+                enum_val
                     .split_terminator(&['_', '-', ' '])
                     .map(|s| s.to_upper_camel_case())
-                    .collect::<String>();
+                    .collect::<String>()
             } else {
-                enum_variant = short_description;
+                short_description
             }
         }
-    }
+    };
     enum_variant
 }
 
@@ -141,13 +138,12 @@ fn add_fields_to_spec(field_node: &Node, spec: &mut XmlFixSpec) {
                     .unwrap()
                     .split_terminator(&['_', '-'])
                     .map(|s| s.to_upper_camel_case())
-                    .take(ENUM_VARIANT_MAX_LEN)
+                    // .take(ENUM_VARIANT_MAX_LEN)
                     .collect::<String>();
                 let enum_value = node.attribute("enum").unwrap();
                 // variant's actual val will always be "enum" attribute
                 // let enum_variant = get_enum_variant(&fld_type, enum_value, description);
-                let mut enum_variant: String =
-                    enum_value.split_terminator(&['_', '-', '/', '\\']).collect();
+                let mut enum_variant: String = description;
                 // prefix the variant name so that it distinguishes between Rust keywords like None
                 // `None` is enum values in some field's supported values
                 enum_variant.insert_str(0, ENUM_VARIANT_PREFIX);

@@ -3,21 +3,25 @@ use std::fmt::Display;
 
 {{#each fields}}
 #[derive(Debug)]
-pub struct {{this.name}}Field {
+pub struct {{this.name}} {
     tag: u32,
     value: String,
 } 
 
-impl {{this.name}}Field {
-    fn new<T: Into<{{fld_type}}> + Display>(val: T) -> Self {
+impl {{this.name}} {
+    pub fn new<T: Into<{{fld_type}}> + Display>(val: T) -> Self {
         Self {
             tag: {{number}},
             value: val.to_string()
         }
     }
-}
-{{/each}}
 
+    pub fn field() -> u32 {
+        {{number}}
+    }
+}
+
+{{/each}}
 "#;
 
 // {{#if values}}
@@ -40,6 +44,7 @@ impl {{this.name}}Field {
 
 // }
 // {{/if}}
+// {{/each}}
 // "#;
 
 // const FIELD_ENUM: &'static str = r#"
@@ -50,3 +55,19 @@ impl {{this.name}}Field {
 //     {{/each}}
 // }
 // "#;
+
+const MSG_STRUCT: &'static str = r#"
+#[derive(Debug, Default, Clone)]
+pub struct {{msg_name}} {
+    header: Header,
+    trailer: Trailer,
+    body: FieldMap
+}
+
+impl {{msg_name}} {
+    pub fn new() -> Self {
+        let mut msg = Self::default();
+        msg.header
+    }
+}
+"#;

@@ -7,9 +7,9 @@ mod templates;
 
 use crate::code_generator::get_fix_spec;
 use code_generator::*;
-use std::env;
+use std::io::Write;
 use std::path::PathBuf;
-use templates::*;
+use std::{env, fs};
 
 pub fn main() {
     let root = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
@@ -18,4 +18,6 @@ pub fn main() {
     println!("cargo:warning={:?}", &out);
     let fix = get_fix_spec(&source, "FIX43.xml");
     generate_fields(&out, "fields.rs", &fix);
+    let mut mod_rs = fs::File::create(out.join("mod.rs")).expect("mod rs");
+    mod_rs.write_all(b"pub mod fields;").expect("pub mod");
 }

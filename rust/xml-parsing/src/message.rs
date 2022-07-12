@@ -6,8 +6,11 @@ use std::iter::Peekable;
 use std::ops::{Index, IndexMut};
 use std::str::FromStr;
 
-use crate::data_dictionary::DataDictionary;
+use crate::data_dictionary::{DataDictionary, HEADER_ID, TRAILER_ID};
+use crate::fields::*;
 use crate::quickfix_errors::SessionRejectError;
+
+type SessResult<T> = Result<T, SessionRejectError>;
 
 /*
 derive a macro which will create impl fns for each of the items in this enum
@@ -45,17 +48,34 @@ type Tag = u32;
 // pub const SOH: char = '\u{01}';
 pub const SOH: char = '|';
 
-#[derive(Debug)]
-pub struct Field {
+#[derive(Debug, Default)]
+pub struct StringField {
     tag: Tag,
     value: String,
 }
 
+impl StringField {
+    pub fn new(tag: Tag, value: &str) -> Self {
+        Self {
+            tag,
+            value: value.to_string(),
+        }
+    }
+
+    pub fn tag(&self) -> u32 {
+        self.tag
+    }
+
+    pub fn value(&self) -> &str {
+        &self.value.as_str()
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct FieldMap {
-    fields: HashMap<Tag, Field>,
+    fields: HashMap<Tag, StringField>,
     group: HashMap<Tag, Group>,
-    field_order: Option<Vec<Tag>>,
+    field_order: Vec<Tag>,
     calc_vec_str: Vec<String>,
 }
 
@@ -65,14 +85,15 @@ impl FieldMap {
         Self::default()
     }
 
-    pub fn set_field<T: ToString>(&mut self, tag: Tag, value: T) {
-        self.fields.insert(
-            tag,
-            Field {
-                tag,
-                value: value.to_string(),
-            },
-        );
+    fn with_field_order(field_order: &[u32]) -> Self {
+        Self {
+            field_order: field_order.to_vec(),
+            ..Default::default()
+        }
+    }
+
+    pub fn set_field(&mut self, field: StringField) {
+        self.fields.insert(field.tag(), field);
     }
 
     pub fn get_field<T: FromStr>(&self, tag: u32) -> Result<T, String> {
@@ -83,8 +104,9 @@ impl FieldMap {
     }
 
     pub fn set_group(&mut self, tag: Tag, value: u32, rep_grp_delimiter: Tag) -> &mut Group {
-        self.set_field(tag, value);
-        let group = self.group.entry(tag).or_insert(Group::new(rep_grp_delimiter));
+        let grp_field = StringField::new(tag, value.to_string().as_str());
+        self.set_field(grp_field);
+        let group = self.group.entry(tag).or_insert(Group::new(rep_grp_delimiter, tag, value));
         // create group instances and insert into group
         for i in 0..value {
             group.add_group(FieldMap::new());
@@ -93,25 +115,26 @@ impl FieldMap {
     }
 
     pub fn set_field_order(&mut self, f_order: &[Tag]) {
-        self.field_order = Some(f_order.to_vec());
+        self.field_order = f_order.to_vec();
     }
 }
-// type FieldMap = HashMap<u32, Field>;
-// type GroupInstance = HashMap<u32, Field>;
-// type GroupMap = HashMap<u32, Group>;
 
 #[derive(Debug, Default)]
 pub struct Group {
     delim: u32,
+    tag: Tag,
+    value: u32,
     fields: Vec<FieldMap>,
     // groups: GroupMap,
 }
 
 impl Group {
-    pub fn new(delimiter: Tag) -> Self {
+    pub fn new(delimiter: Tag, tag: Tag, value: u32) -> Self {
         Self {
             delim: delimiter,
-            fields: Vec::<FieldMap>::new(),
+            tag,
+            value,
+            ..Default::default()
         }
     }
 
@@ -151,7 +174,10 @@ pub struct Message {
 
 impl Message {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            header: FieldMap::with_field_order(&[8, 9, 35]),
+            ..Default::default()
+        }
     }
 
     pub fn header(&self) -> &Header {
@@ -170,8 +196,8 @@ impl Message {
         &mut self.trailer
     }
 
-    pub fn set_field<T: ToString>(&mut self, tag: Tag, value: T) {
-        self.body.set_field(tag, value);
+    pub fn set_field(&mut self, fld: StringField) {
+        self.body.set_field(fld);
     }
 
     pub fn get_field<T: FromStr>(&self, tag: Tag) -> Result<T, String> {
@@ -190,8 +216,12 @@ impl Message {
         todo!()
     }
 
-    pub fn from_str<'a>(s: &'a str, dd: &DataDictionary) -> Result<Self, SessionRejectError> {
-        let mut vdeq: VecDeque<(u32, &str)> = VecDeque::with_capacity(16);
+    fn get_msg_type(&self) -> Result<String, String> {
+        self.header.get_field::<String>(35)
+    }
+
+    pub fn from_str<'a>(s: &'a str, dd: &DataDictionary) -> SessResult<Self> {
+        let mut vdeq: VecDeque<StringField> = VecDeque::with_capacity(16);
         for field in s.split_terminator("|") {
             let (tag, value) = match field.split_once("=") {
                 Some((t, v)) => {
@@ -206,19 +236,144 @@ impl Message {
                 }
                 None => return Err(SessionRejectError::invalid_tag_err()),
             };
-            vdeq.push_back((tag, value));
+            vdeq.push_back(StringField::new(tag, value));
         }
 
         Self::from_vec(vdeq, dd)
     }
 
-    fn from_vec(
-        mut v: VecDeque<(u32, &str)>, dd: &DataDictionary,
-    ) -> Result<Self, SessionRejectError> {
-        todo!()
+    fn from_vec(mut v: VecDeque<StringField>, dd: &DataDictionary) -> SessResult<Self> {
+        let mut message = Message::new();
+        parse_header(&mut v, message.header_mut(), dd)?;
+        parse_body(&mut v, &mut message, dd)?;
+        parse_trailer(&mut v, message.trailer_mut(), dd)?;
+        Ok(message)
     }
 }
 
+fn parse_group(
+    v: &mut VecDeque<StringField>, msg_type: &str, fld: &StringField, fmap: &mut FieldMap,
+    dd: &DataDictionary,
+) -> SessResult<()> {
+    let rg = dd.get_group(HEADER_ID, &fld);
+    let rg_dd = rg.get_data_dictionary();
+    let field_order = rg_dd.get_ordered_fields();
+    let group_count_tag = fld.tag();
+    let declared_count = match fld.value().parse::<u32>() {
+        Ok(c) => c,
+        Err(e) => return Err(SessionRejectError::incorrect_data_format_err()),
+    };
+    let delimiter = rg.get_delimiter();
+    let group = fmap.set_group(fld.tag(), declared_count, delimiter);
+    let mut actual_count: i32 = -1;
+    let mut previous_offset: i32 = -1;
+    while let Some(next_field) = v.pop_front() {
+        if next_field.tag() == delimiter {
+            actual_count += 1;
+            if actual_count + 1 >= declared_count as i32 {
+                // incorrect NumInGroups
+                return Err(SessionRejectError::incorrect_num_in_grp_count());
+            }
+            // resetting previous offset
+            previous_offset = -1;
+            let mut group_instance = &mut group[actual_count as usize];
+            group_instance.set_field_order(&field_order);
+            if rg_dd.is_group(msg_type, &next_field) {
+                parse_group(v, msg_type, &next_field, &mut group_instance, dd)?;
+            } else {
+                group_instance.set_field(next_field);
+            }
+        } else if rg_dd.is_group(msg_type, &next_field) {
+            if actual_count < 0 {
+                return Err(SessionRejectError::required_tag_missing_err());
+            }
+            let mut group_instance = &mut group[actual_count as usize];
+            parse_group(v, msg_type, &next_field, &mut group_instance, dd)?;
+        } else if rg_dd.is_msg_field(msg_type, &next_field) {
+            if actual_count < 0 {
+                // means first field not found i.e. delimiter
+                return Err(SessionRejectError::required_tag_missing_err());
+            }
+            // verify the order of fields
+            let offset = field_order.iter().position(|f| *f == next_field.tag()).unwrap() as i32;
+            if offset < previous_offset {
+                // means the field is out of order
+                return Err(SessionRejectError::repeating_grp_out_of_order());
+            }
+            let group_instance = &mut group[actual_count as usize];
+            group_instance.set_field(next_field);
+            previous_offset = offset;
+        } else {
+            // its not a group field, push back and come out
+            v.push_front(next_field);
+            break;
+        }
+    }
+    if actual_count + 1 != declared_count as i32 {
+        // means actual repeating groups are less then declared count
+        return Err(SessionRejectError::incorrect_num_in_grp_count());
+    }
+    Ok(())
+}
+
+fn parse_header(
+    v: &mut VecDeque<StringField>, header: &mut FieldMap, dd: &DataDictionary,
+) -> SessResult<()> {
+    if v[0].tag() != BeginString::field()
+        || v[1].tag() != BodyLength::field()
+        || v[3].tag() != MsgType::field()
+    {
+        return Err(SessionRejectError::tag_specified_out_of_order());
+    }
+    while let Some(fld) = v.pop_front() {
+        if !dd.is_header_field(&fld) {
+            // start of body
+            v.push_front(fld);
+            return Ok(());
+        } else if dd.is_group(HEADER_ID, &fld) {
+            parse_group(v, HEADER_ID, &fld, header, dd)?;
+        } else {
+            header.set_field(fld);
+        }
+    }
+    Ok(())
+}
+
+fn parse_body(
+    v: &mut VecDeque<StringField>, msg: &mut Message, dd: &DataDictionary,
+) -> SessResult<()> {
+    let msg_type = match msg.get_msg_type() {
+        Ok(s) => s,
+        Err(_) => return Err(SessionRejectError::required_tag_missing_err()),
+    };
+    while let Some(fld) = v.pop_front() {
+        if dd.is_header_field(&fld) {
+            return Err(SessionRejectError::tag_specified_out_of_order());
+        }
+        if dd.is_trailer_field(&fld) {
+            v.push_front(fld);
+            return Ok(());
+        }
+        if dd.is_group(msg_type.as_str(), &fld) {
+            parse_group(v, &msg_type, &fld, &mut msg.body, dd)?;
+        } else {
+            msg.set_field(fld);
+        }
+    }
+    Ok(())
+}
+
+fn parse_trailer(
+    v: &mut VecDeque<StringField>, trailer: &mut FieldMap, dd: &DataDictionary,
+) -> SessResult<()> {
+    while let Some(fld) = v.pop_front() {
+        if !dd.is_trailer_field(&fld) {
+            return Err(SessionRejectError::tag_specified_out_of_order());
+        }
+        trailer.set_field(fld);
+    }
+    Ok(())
+}
 pub const SAMPLE_MSG: &str = "8=FIX.4.2|9=251|35=D|49=AFUNDMGR|56=ABROKER|34=2|52=2003061501:14:49|11=12345|1=111111|63=0|64=20030621|21=3|110=1000|111=50000|55=IBM|48=459200101|22=1|54=1|60=2003061501:14:49|38=5000|40=1|44=15.75|15=USD|59=0|10=127|";
 
 pub struct MessageBuilder {}

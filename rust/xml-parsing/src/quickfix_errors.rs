@@ -13,13 +13,8 @@ pub struct SessionRejectError {
 }
 
 impl SessionRejectError {
-    // pub fn invalid_value_for_tag_err(value: &str) -> Self {
-    //     SessionRejectError {
-    //         kind: SessionRejectReason::InvalidValueForTag(value),
-    //     }
-    // }
-
     pub fn invalid_tag_err() -> Self {
+        // tag not parsed properly
         SessionRejectError {
             kind: SessionRejectReason::InvalidTag,
         }
@@ -32,6 +27,7 @@ impl SessionRejectError {
     }
 
     pub fn undefined_tag_err() -> Self {
+        // tag not defined in Xml
         SessionRejectError {
             kind: SessionRejectReason::UndefinedTag,
         }
@@ -51,7 +47,7 @@ impl SessionRejectError {
 
     pub fn incorrect_data_format_err() -> Self {
         SessionRejectError {
-            kind: SessionRejectReason::IncorrectDataFormat,
+            kind: SessionRejectReason::IncorrectDataFormatForValue,
         }
     }
 
@@ -97,11 +93,47 @@ impl SessionRejectError {
         }
     }
 
-    // pub fn parse_err(err: Box<dyn Error>) -> Self {
-    //     SessionRejectError {
-    //         kind: SessionRejectReason::ParseError(err),
-    //     }
-    // }
+    pub fn tag_not_defined_for_msg() -> Self {
+        SessionRejectError {
+            kind: SessionRejectReason::TagNotDefinedForMsgType,
+        }
+    }
+
+    pub fn xml_validation_err() -> Self {
+        SessionRejectError {
+            kind: SessionRejectReason::XmlValidationError,
+        }
+    }
+
+    pub fn tag_appear_more_than_once() -> Self {
+        SessionRejectError {
+            kind: SessionRejectReason::TagAppearsMoreThanOnce,
+        }
+    }
+
+    pub fn tag_specified_out_of_order() -> Self {
+        SessionRejectError {
+            kind: SessionRejectReason::TagSpecifiedOutOfOrder,
+        }
+    }
+
+    pub fn repeating_grp_out_of_order() -> Self {
+        SessionRejectError {
+            kind: SessionRejectReason::RepeatingGroupsOutOfOrder,
+        }
+    }
+
+    pub fn incorrect_num_in_grp_count() -> Self {
+        SessionRejectError {
+            kind: SessionRejectReason::IncorrectNumInGroupCountForRepeatingGroup,
+        }
+    }
+
+    pub fn non_data_field_contains_soh() -> Self {
+        SessionRejectError {
+            kind: SessionRejectReason::NonDataFieldIncludeSOHChar,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -119,7 +151,7 @@ enum SessionRejectReason {
     // #[error("Value out of range for tag")]
     ValueOutOfRange,
     // #[error("Incorrect data format")]
-    IncorrectDataFormat,
+    IncorrectDataFormatForValue,
     // #[error("Decryption problem")]
     DecryptionProblem,
     // #[error("Signature problem")]
@@ -130,6 +162,12 @@ enum SessionRejectReason {
     SendingTimeAccuracyProblem,
     // #[error("Invalid message type")]
     InvalidMessageType,
+    XmlValidationError,
+    TagAppearsMoreThanOnce,
+    TagSpecifiedOutOfOrder,
+    RepeatingGroupsOutOfOrder,
+    IncorrectNumInGroupCountForRepeatingGroup,
+    NonDataFieldIncludeSOHChar,
     // #[error("Invalid body length")]
     InvalidBodyLength,
     // #[error("Invalid checksum")]
