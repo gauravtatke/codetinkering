@@ -1,4 +1,4 @@
-pub const FIELD_STRUCT: &'static str = r#"
+pub const FIELD_STRUCT: &str = r#"
 use std::fmt::Display;
 
 {{#each fields}}
@@ -56,7 +56,7 @@ impl {{this.name}} {
 // }
 // "#;
 
-const MSG_STRUCT: &'static str = r#"
+const MSG_STRUCT: &str = r#"
 #[derive(Debug, Default, Clone)]
 pub struct {{msg_name}} {
     header: Header,

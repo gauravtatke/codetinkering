@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fmt::{self, Formatter};
 use std::num::ParseIntError;
-use thiserror;
 
 #[derive(Debug, thiserror::Error)]
 #[error("Session Level Reject Reason - {:?}", .kind)]
@@ -193,4 +192,9 @@ pub enum XmlError {
     AttributeNotFound(String),
     #[error("Unknown xml tag {}", .0)]
     UnknownXmlTag(String),
+}
+
+pub enum InvalidMessage {
+    FieldDoesNotHaveDelimiter,
+    MessageDoesNotHaveSOH,
 }

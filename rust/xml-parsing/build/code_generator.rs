@@ -3,10 +3,10 @@ use handlebars::Handlebars;
 use heck::ToUpperCamelCase;
 use roxmltree::*;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, collections::HashSet, fs, fs::File, path::PathBuf};
+use std::{collections::HashMap, collections::HashSet, fs, fs::File, path::Path};
 
 const ENUM_VARIANT_MAX_LEN: usize = 10; // max words in enum variant separated by `_`
-const ENUM_VARIANT_PREFIX: &'static str = "ENVal_";
+const ENUM_VARIANT_PREFIX: &str = "ENVal_";
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct XmlFixSpec {
@@ -98,7 +98,7 @@ fn get_enum_variant(field_type: &str, enum_val: &str, description: &str) -> Stri
         enum_words[..].join("")
     };
 
-    if short_description.chars().nth(0).unwrap().is_numeric() {
+    if short_description.chars().next().unwrap().is_numeric() {
         // if the description starts with a number, prefix it with `Val`
         short_description.insert_str(0, "Val")
     }
@@ -165,7 +165,7 @@ fn add_fields_to_spec(field_node: &Node, spec: &mut XmlFixSpec) {
     }
 }
 
-pub fn get_fix_spec(src_dir: &PathBuf, name: &str) -> XmlFixSpec {
+pub fn get_fix_spec(src_dir: &Path, name: &str) -> XmlFixSpec {
     let mut fix_spec = XmlFixSpec::default();
     let buff = fs::read_to_string(src_dir.join(name)).unwrap();
     let document = Document::parse(&buff).expect("xml document could not be parsed");
@@ -187,7 +187,7 @@ pub fn get_fix_spec(src_dir: &PathBuf, name: &str) -> XmlFixSpec {
     fix_spec
 }
 
-pub fn generate_fields(out_dir: &PathBuf, name: &str, xml_spec: &XmlFixSpec) {
+pub fn generate_fields(out_dir: &Path, name: &str, xml_spec: &XmlFixSpec) {
     let mut file = File::create(out_dir.join(name)).expect("file could not be created");
     let mut handlebar = Handlebars::new();
     handlebar.register_template_string("f_struct", FIELD_STRUCT).unwrap();

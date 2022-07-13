@@ -18,61 +18,61 @@ pub(crate) const TRAILER_ID: &str = "Trailer";
 
 #[derive(Debug, Copy, Clone)]
 enum FixType {
-    CHAR,
-    BOOLEAN,
-    DATA,
-    FLOAT,
-    AMT,
-    PERCENTAGE,
-    PRICE,
-    PRICEOFFSET,
-    QTY,
-    INT,
-    LENGTH,
-    NUMINGROUP,
-    SEQNUM,
-    TAGNUM,
-    STRING,
-    COUNTRY,
-    CURRENCY,
-    EXCHANGE,
-    LOCALMKTDATE,
-    MONTHYEAR,
-    MULTIPLEVALUESTRING,
-    UTCDATE,
-    UTCTIMEONLY,
-    UTCTIMESTAMP,
-    UNKNOWN,
+    Char,
+    Boolean,
+    Data,
+    Float,
+    Amt,
+    Percentage,
+    Price,
+    PriceOffset,
+    Qty,
+    Int,
+    Length,
+    NumInGroup,
+    Seqnum,
+    Tagnum,
+    Str,
+    Country,
+    Currency,
+    Exchange,
+    LocalMktDate,
+    MonthYear,
+    MultipleValueString,
+    UtcDate,
+    UtcTimeOnly,
+    UtcTimestamp,
+    Unknown,
 }
 
 impl FixType {
     fn value_of(value: &str) -> Self {
         match value {
-            "CHAR" => FixType::CHAR,
-            "BOOLEAN" => FixType::BOOLEAN,
-            "DATA" => FixType::DATA,
-            "FLOAT" => FixType::FLOAT,
-            "AMT" => FixType::AMT,
-            "PERCENTAGE" => FixType::PERCENTAGE,
-            "PRICE" => FixType::PRICE,
-            "PRICEOFFSET" => FixType::PRICEOFFSET,
-            "QTY" => FixType::QTY,
-            "INT" => FixType::INT,
-            "LENGTH" => FixType::LENGTH,
-            "NUMINGROUP" => FixType::NUMINGROUP,
-            "SEQNUM" => FixType::SEQNUM,
-            "TAGNUM" => FixType::TAGNUM,
-            "STRING" => FixType::STRING,
-            "COUNTRY" => FixType::COUNTRY,
-            "CURRENCY" => FixType::CURRENCY,
-            "EXCHANGE" => FixType::EXCHANGE,
-            "LOCALMKTDATE" => FixType::LOCALMKTDATE,
-            "MONTHYEAR" => FixType::MONTHYEAR,
-            "MULTIPLEVALUESTRING" => FixType::MULTIPLEVALUESTRING,
-            "UTCDATE" => FixType::UTCDATE,
-            "UTCTIMEONLY" => FixType::UTCTIMEONLY,
-            "UTCTIMESTAMP" => FixType::UTCTIMESTAMP,
-            _ => FixType::UNKNOWN,
+            "CHAR" => FixType::Char,
+            "BOOLEAN" => FixType::Boolean,
+            "DATA" => FixType::Data,
+            "FLOAT" => FixType::Float,
+            "AMT" => FixType::Amt,
+            "PERCENTAGE" => FixType::Percentage,
+            "PRICE" => FixType::Price,
+            "PRICEOFFSET" => FixType::PriceOffset,
+            "QTY" => FixType::Qty,
+            "INT" => FixType::Int,
+            "LENGTH" => FixType::Length,
+            "NUMINGROUP" => FixType::NumInGroup,
+            "SEQNUM" => FixType::Seqnum,
+            "TAGNUM" => FixType::Tagnum,
+            "STRING" => FixType::Str,
+            "COUNTRY" => FixType::Country,
+            "CURRENCY" => FixType::Currency,
+            "EXCHANGE" => FixType::Exchange,
+            "LOCALMKTDATE" => FixType::LocalMktDate,
+            "MONTHYEAR" => FixType::MonthYear,
+            "MULTIPLEVALUESTRING" => FixType::MultipleValueString,
+            "UTCDATE" => FixType::UtcDate,
+            "UTCTIMEONLY" => FixType::UtcTimeOnly,
+            "UTCTIMESTAMP" => FixType::UtcTimestamp,
+            _ => FixType::Unknown,
         }
     }
 }
@@ -128,10 +128,8 @@ impl DataDictionary {
     }
 
     fn set_field_for(&mut self, msg_type: &str, fnum: u32, required: bool) -> DResult<()> {
-        let msg_fields = self
-            .messsage_fields
-            .entry(msg_type.to_string())
-            .or_insert_with(|| HashSet::new());
+        let msg_fields =
+            self.messsage_fields.entry(msg_type.to_string()).or_insert_with(HashSet::new);
         if msg_fields.contains(&fnum) {
             return Err(XmlError::DuplicateField(format!(
                 "field {} in message {}",
@@ -187,7 +185,7 @@ impl DataDictionary {
     }
 
     pub fn get_ordered_fields(&self) -> Vec<u32> {
-        self.fields.iter().map(|x| *x).collect::<Vec<u32>>()
+        self.fields.iter().copied().collect::<Vec<u32>>()
     }
 
     pub fn is_msg_field(&self, msg_type: &str, fld: &StringField) -> bool {
@@ -225,11 +223,9 @@ impl GroupInfo {
 }
 
 fn get_attribute<'a>(attr: &str, node: &Node<'a, '_>) -> DResult<&'a str> {
-    node.attribute(attr).ok_or(XmlError::AttributeNotFound(format!(
-        "{} in {:?}",
-        attr,
-        node.tag_name().name()
-    )))
+    node.attribute(attr).ok_or_else(|| {
+        XmlError::AttributeNotFound(format!("{} in {:?}", attr, node.tag_name().name()))
+    })
 }
 fn get_name_attr<'a>(node: &Node<'a, '_>) -> DResult<&'a str> {
     get_attribute("name", node)
@@ -243,13 +239,13 @@ fn get_required_attr(node: &Node) -> DResult<bool> {
 fn get_begin_str_from_doc(root_node: Node) -> DResult<String> {
     let dict_type = root_node
         .attribute("type")
-        .ok_or(XmlError::AttributeNotFound("fix type in root node".to_string()))?;
+        .ok_or_else(|| XmlError::AttributeNotFound("fix type in root node".to_string()))?;
     let major_version = root_node
         .attribute("major")
-        .ok_or(XmlError::AttributeNotFound("major version in root node".to_string()))?;
+        .ok_or_else(|| XmlError::AttributeNotFound("major version in root node".to_string()))?;
     let minor_verion = root_node
         .attribute("minor")
-        .ok_or(XmlError::AttributeNotFound("minor version in root node".to_string()))?;
+        .ok_or_else(|| XmlError::AttributeNotFound("minor version in root node".to_string()))?;
     Ok(format!("{}.{}.{}", dict_type, major_version, minor_verion))
 }
 
@@ -261,7 +257,7 @@ fn lookup_node<'a, 'input>(
         .root_element()
         .children()
         .find(|node| node.tag_name().name().eq_ignore_ascii_case(name))
-        .ok_or(XmlError::XmlNodeNotFound(name.to_string()))
+        .ok_or_else(|| XmlError::XmlNodeNotFound(name.to_string()))
 }
 
 fn get_component_nodes_by_name<'a, 'i>(components: Node<'a, 'i>) -> DResult<NodeMap<'a, 'i>> {

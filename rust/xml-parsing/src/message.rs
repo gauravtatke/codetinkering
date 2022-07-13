@@ -67,7 +67,7 @@ impl StringField {
     }
 
     pub fn value(&self) -> &str {
-        &self.value.as_str()
+        self.value.as_str()
     }
 }
 
@@ -98,7 +98,7 @@ impl FieldMap {
 
     pub fn get_field<T: FromStr>(&self, tag: u32) -> Result<T, String> {
         if let Some(field) = self.fields.get(&tag) {
-            return field.value.parse::<T>().or(Err("could not parse".to_string()));
+            return field.value.parse::<T>().map_err(|_| "could not parse".to_string());
         }
         Err("not found".to_string())
     }
@@ -106,7 +106,10 @@ impl FieldMap {
     pub fn set_group(&mut self, tag: Tag, value: u32, rep_grp_delimiter: Tag) -> &mut Group {
         let grp_field = StringField::new(tag, value.to_string().as_str());
         self.set_field(grp_field);
-        let group = self.group.entry(tag).or_insert(Group::new(rep_grp_delimiter, tag, value));
+        let group = self
+            .group
+            .entry(tag)
+            .or_insert_with(|| Group::new(rep_grp_delimiter, tag, value));
         // create group instances and insert into group
         for i in 0..value {
             group.add_group(FieldMap::new());
@@ -220,10 +223,10 @@ impl Message {
         self.header.get_field::<String>(35)
     }
 
-    pub fn from_str<'a>(s: &'a str, dd: &DataDictionary) -> SessResult<Self> {
+    pub fn from_str(s: &str, dd: &DataDictionary) -> SessResult<Self> {
         let mut vdeq: VecDeque<StringField> = VecDeque::with_capacity(16);
-        for field in s.split_terminator("|") {
-            let (tag, value) = match field.split_once("=") {
+        for field in s.split_terminator('|') {
+            let (tag, value) = match field.split_once('=') {
                 Some((t, v)) => {
                     let parse_result = t.parse::<u32>();
                     if parse_result.is_err() {
@@ -239,23 +242,23 @@ impl Message {
             vdeq.push_back(StringField::new(tag, value));
         }
 
-        Self::from_vec(vdeq, dd)
+        from_vec(vdeq, dd)
     }
+}
 
-    fn from_vec(mut v: VecDeque<StringField>, dd: &DataDictionary) -> SessResult<Self> {
-        let mut message = Message::new();
-        parse_header(&mut v, message.header_mut(), dd)?;
-        parse_body(&mut v, &mut message, dd)?;
-        parse_trailer(&mut v, message.trailer_mut(), dd)?;
-        Ok(message)
-    }
+fn from_vec(mut v: VecDeque<StringField>, dd: &DataDictionary) -> SessResult<Message> {
+    let mut message = Message::new();
+    parse_header(&mut v, message.header_mut(), dd)?;
+    parse_body(&mut v, &mut message, dd)?;
+    parse_trailer(&mut v, message.trailer_mut(), dd)?;
+    Ok(message)
 }
 
 fn parse_group(
     v: &mut VecDeque<StringField>, msg_type: &str, fld: &StringField, fmap: &mut FieldMap,
     dd: &DataDictionary,
 ) -> SessResult<()> {
-    let rg = dd.get_group(HEADER_ID, &fld);
+    let rg = dd.get_group(HEADER_ID, fld);
     let rg_dd = rg.get_data_dictionary();
     let field_order = rg_dd.get_ordered_fields();
     let group_count_tag = fld.tag();
@@ -276,10 +279,10 @@ fn parse_group(
             }
             // resetting previous offset
             previous_offset = -1;
-            let mut group_instance = &mut group[actual_count as usize];
+            let group_instance = &mut group[actual_count as usize];
             group_instance.set_field_order(&field_order);
             if rg_dd.is_group(msg_type, &next_field) {
-                parse_group(v, msg_type, &next_field, &mut group_instance, dd)?;
+                parse_group(v, msg_type, &next_field, group_instance, dd)?;
             } else {
                 group_instance.set_field(next_field);
             }
@@ -287,8 +290,8 @@ fn parse_group(
             if actual_count < 0 {
                 return Err(SessionRejectError::required_tag_missing_err());
             }
-            let mut group_instance = &mut group[actual_count as usize];
-            parse_group(v, msg_type, &next_field, &mut group_instance, dd)?;
+            let group_instance = &mut group[actual_count as usize];
+            parse_group(v, msg_type, &next_field, group_instance, dd)?;
         } else if rg_dd.is_msg_field(msg_type, &next_field) {
             if actual_count < 0 {
                 // means first field not found i.e. delimiter
