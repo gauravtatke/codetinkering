@@ -1,4 +1,5 @@
 #![allow(dead_code, unused_imports, unused_variables, non_camel_case_types)]
+
 include!(concat!(env!("OUT_DIR"), "/mod.rs"));
 
 mod data_dictionary;
