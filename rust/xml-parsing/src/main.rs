@@ -10,7 +10,7 @@ use data_dictionary::*;
 use fields::*;
 use message::*;
 
-pub(crate) const FILE_PATH: &str = "config/fix43/FIX43.xml";
+pub(crate) const FILE_PATH: &str = "resources/FIX43.xml";
 
 fn main() {
     // let mut message = Message::new();
@@ -28,8 +28,8 @@ fn main() {
     // println!("not found {:?}", message.get_field::<u32>(56));
     // message.set_field(34, 1);
     // println!("out dir - {:?}", env!("OUT_DIR"));
-    let price = Price::new(55.5f32);
-    let msg_typ = MsgType::new("asdf".to_string());
-    println!("{:?}", price);
-    println!("{:?}", msg_typ);
+    // let price = Price::new(55.5f32);
+    // let msg_typ = MsgType::new("asdf".to_string());
+    // println!("{:?}", price);
+    // println!("{:?}", msg_typ);
 }

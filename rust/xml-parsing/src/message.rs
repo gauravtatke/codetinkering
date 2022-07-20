@@ -106,10 +106,8 @@ impl FieldMap {
     pub fn set_group(&mut self, tag: Tag, value: u32, rep_grp_delimiter: Tag) -> &mut Group {
         let grp_field = StringField::new(tag, value.to_string().as_str());
         self.set_field(grp_field);
-        let group = self
-            .group
-            .entry(tag)
-            .or_insert_with(|| Group::new(rep_grp_delimiter, tag, value));
+        let group =
+            self.group.entry(tag).or_insert_with(|| Group::new(rep_grp_delimiter, tag, value));
         // create group instances and insert into group
         for i in 0..value {
             group.add_group(FieldMap::new());
@@ -258,7 +256,9 @@ fn parse_group(
     v: &mut VecDeque<StringField>, msg_type: &str, fld: &StringField, fmap: &mut FieldMap,
     dd: &DataDictionary,
 ) -> SessResult<()> {
-    let rg = dd.get_group(HEADER_ID, fld);
+    let rg = dd
+        .get_group(HEADER_ID, fld.tag())
+        .ok_or_else(|| SessionRejectError::tag_not_defined_for_msg())?;
     let rg_dd = rg.get_data_dictionary();
     let field_order = rg_dd.get_ordered_fields();
     let group_count_tag = fld.tag();
@@ -281,18 +281,18 @@ fn parse_group(
             previous_offset = -1;
             let group_instance = &mut group[actual_count as usize];
             group_instance.set_field_order(&field_order);
-            if rg_dd.is_group(msg_type, &next_field) {
+            if rg_dd.is_group(msg_type, next_field.tag()) {
                 parse_group(v, msg_type, &next_field, group_instance, dd)?;
             } else {
                 group_instance.set_field(next_field);
             }
-        } else if rg_dd.is_group(msg_type, &next_field) {
+        } else if rg_dd.is_group(msg_type, next_field.tag()) {
             if actual_count < 0 {
                 return Err(SessionRejectError::required_tag_missing_err());
             }
             let group_instance = &mut group[actual_count as usize];
             parse_group(v, msg_type, &next_field, group_instance, dd)?;
-        } else if rg_dd.is_msg_field(msg_type, &next_field) {
+        } else if rg_dd.is_msg_field(msg_type, next_field.tag()) {
             if actual_count < 0 {
                 // means first field not found i.e. delimiter
                 return Err(SessionRejectError::required_tag_missing_err());
@@ -329,11 +329,11 @@ fn parse_header(
         return Err(SessionRejectError::tag_specified_out_of_order());
     }
     while let Some(fld) = v.pop_front() {
-        if !dd.is_header_field(&fld) {
+        if !dd.is_header_field(fld.tag()) {
             // start of body
             v.push_front(fld);
             return Ok(());
-        } else if dd.is_group(HEADER_ID, &fld) {
+        } else if dd.is_group(HEADER_ID, fld.tag()) {
             parse_group(v, HEADER_ID, &fld, header, dd)?;
         } else {
             header.set_field(fld);
@@ -350,14 +350,14 @@ fn parse_body(
         Err(_) => return Err(SessionRejectError::required_tag_missing_err()),
     };
     while let Some(fld) = v.pop_front() {
-        if dd.is_header_field(&fld) {
+        if dd.is_header_field(fld.tag()) {
             return Err(SessionRejectError::tag_specified_out_of_order());
         }
-        if dd.is_trailer_field(&fld) {
+        if dd.is_trailer_field(fld.tag()) {
             v.push_front(fld);
             return Ok(());
         }
-        if dd.is_group(msg_type.as_str(), &fld) {
+        if dd.is_group(msg_type.as_str(), fld.tag()) {
             parse_group(v, &msg_type, &fld, &mut msg.body, dd)?;
         } else {
             msg.set_field(fld);
@@ -370,7 +370,7 @@ fn parse_trailer(
     v: &mut VecDeque<StringField>, trailer: &mut FieldMap, dd: &DataDictionary,
 ) -> SessResult<()> {
     while let Some(fld) = v.pop_front() {
-        if !dd.is_trailer_field(&fld) {
+        if !dd.is_trailer_field(fld.tag()) {
             return Err(SessionRejectError::tag_specified_out_of_order());
         }
         trailer.set_field(fld);
